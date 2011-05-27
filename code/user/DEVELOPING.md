@@ -135,7 +135,7 @@ The I/O devices are accessed through memory addresses in the range $C000-$DFFF. 
 	$C001       - bank select register (VIA port A output register)
 	$C400-$C407 - 16550 UART (serial port)
 	$C404       - controls status LED color (UART modem control register)
-	$C008       - SPI input shift register
+	$C800       - SPI input shift register
 	$CC00-$CC01 - TMS9918A Video Display Processor
 	$CC02-$CC03 - YM2149 Programmable Sound Generator
 	$CC04       - read to select lower 16K of VRAM
@@ -215,12 +215,12 @@ Shift D left one bit:
 Shift D right one bit, unsigned:
 
 	lsra
-	rolb
+	rorb
 
 Shift D right one bit, maintaining sign:
 
 	asra
-	rolb
+	rorb
 	
 Negate D:
 
@@ -401,7 +401,7 @@ The TMS9918A has a strange memory addressing scheme: to write to or read from VR
 	stb  VDP_REG
 	sta  VDP_REG
 	
-The VRAM define is included to make things easier to understand:
+The `VRAM` define is included to make things easier to understand:
 
 	ldd	 #VRAM|NEW_VRAM_ADDRESS
 	stb  VDP_REG
