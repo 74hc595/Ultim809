@@ -21,7 +21,7 @@ Full feature list:
 *  SD card slot (not working yet...)
 *  Expansion slot, supports 4 devices without additional decoding circuitry
 
-I am making the schematics, design files, and source code available to anyone interested in learning about the project, or constructing their own. All material is made available under my (very simple) [msarnoff.org license.](*****)
+I am making the schematics, design files, and source code available to anyone interested in learning about the project, or constructing their own. All material is made available under my (very simple) [msarnoff.org license.](http://www.msarnoff.org/LICENSE)
 
 Schematics and PCB layout file are provided for use with the [open-source gEDA suite.](http://gpleda.org) Be aware that board revision 0 has errors: I have provided instructions on correcting them by cutting traces and adding wires.
 
