@@ -1,0 +1,3053 @@
+                              1 ; vim:noet:sw=8:ts=8:ai:syn=as6809
+                              2 ; Matt Sarnoff (msarnoff.org/6809) - May 26, 2010
+                              3 
+                              4 	.area	_CODE(ABS)
+                              5 
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                              8 	.list
+                              9 
+                             10 ;************ Customizable vectors in zero page ************
+   0002                      11 	.org	SYSRAM
+   0002                      12 SWI3VEC:	.rmb	2		;SWI3 vector
+   0004                      13 SWI2VEC:	.rmb	2		;SWI2 vector
+   0006                      14 FIRQVEC:	.rmb	2		;FIRQ vector
+   0008                      15 IRQVEC:		.rmb	2		;IRQ vector
+   000A                      16 SWIVEC:		.rmb	2		;SWI vector
+   000C                      17 NMIVEC:		.rmb	2		;NMI vector
+   000E                      18 OUTCH:		.rmb	2		;pointer to character output function
+   0010                      19 INCH:		.rmb	2		;pointer to character input function
+                             20 
+                             21 ;************ Zero page system variables ************
+   0012                      22 NUMRAMPAGES:	.rmb	1		;number of 16K pages
+   0013                      23 RAM_KB_BCD:	.rmb	2		;RAM size in BCD kilobytes
+   0015                      24 L:		.rmb	4
+                     0015    25 LH		.equ	L
+                     0017    26 LL		.equ	L+2
+   0019                      27 CURSORPOS:	.rmb	2
+   001B                      28 KEYSTATE:	.rmb	1
+   001C                      29 KBD_SAVE:	.rmb	1
+   001D                      30 KBD_BITSLEFT:	.rmb	1
+   001E                      31 KBD_SCANCODE:	.rmb	1
+                             32 
+   0020                      33 	.org	(SYSRAM-2)+0x20
+   0020                      34 KBD_BUFSTART:	.rmb	16
+                     002F    35 KBD_BUFEND	.equ	.-1
+                     00EF    36 KBD_BUFMASK	.equ	0b11101111
+                             37 
+   0030                      38 KBD_HEADPTR:	.rmb	1
+   0031                      39 KBD_HEADPTR_L:	.rmb	1
+   0032                      40 KBD_TAILPTR:	.rmb	1
+   0033                      41 KBD_TAILPTR_L:	.rmb	1
+                             42 
+                             43 
+                             44 ;COUNT:		.rmb	2		;16-bit temporary
+                             45 
+                             46 ;************ Main routine ************
+   E000                      47 	.org	ROMSTART
+   E000 10 CE 00 41   [ 4]   48 MAIN:		lds	#ROMSTKSTART+1	;set up ROM stack pointer
+   E004 86 00         [ 2]   49 		lda	#ROMDP		;set up direct page register
+   E006 1F 8B         [ 6]   50 		tfr	a,dp
+                             51 
+                             52 ; set up VIA and memory banking, calculate RAM size
+   E008 86 FF         [ 2]   53 		lda	#0xFF		;port A (page register) all outputs
+   E00A B7 C0 03      [ 5]   54 		sta	VIA_DDRA
+   E00D 8D 26         [ 7]   55 		bsr	CALCRAMSIZE
+   E00F 86 02         [ 2]   56 		lda	#2		;bank in ram page 2
+   E011 B7 C0 01      [ 5]   57 		sta	PAGE
+                             58 
+                             59 ; set up serial port
+   E014 8E 03 00      [ 3]   60 		ldx	#B38400		;set UART to 38400 baud
+   E017 8D 57         [ 7]   61 		bsr	UART_INIT	;initialize UART
+                             62 
+                             63 ; set up I/O functions
+   E019 8D 6E         [ 7]   64 		bsr	UART_IO
+                             65 
+                             66 ; load the interrupt vectors
+   E01B CC EA 60      [ 3]   67 		ldd	#STARTUP	;SWI2 returns to startup screen
+   E01E DD 04         [ 5]   68 		std	*SWI2VEC
+   E020 CC FF EF      [ 3]   69 		ldd	#DUMMY_VECTOR
+   E023 DD 02         [ 5]   70 		std	*SWI3VEC	;SWI3 does nothing
+   E025 DD 08         [ 5]   71 		std	*IRQVEC		;IRQ does nothing
+   E027 DD 06         [ 5]   72 		std	*FIRQVEC	;FIRQ does nothing
+   E029 DD 0A         [ 5]   73 		std	*SWIVEC
+                             74 
+   E02B CC FE 40      [ 3]   75 		ldd	#REMOTEMONITOR
+   E02E DD 0C         [ 5]   76 		std	*NMIVEC
+                             77 
+                             78 ; start
+                             79 		;jmp	STARTUP
+   E030 7E 01 00      [ 4]   80 		jmp	0x0100
+                             81 		;swi2			;show the startup screen
+                             82 
+                             83 ; should not get here! loop forever
+   E033 20 FE         [ 3]   84 done:		bra	.		;wait
+                             85 
+                             86 ;************ Include files ************
+                             87 
+                             88 		.include "memcheck.asm"
+                              1 ; vim:noet:sw=8:ts=8:ai:syn=as6809
+                              2 ; Matt Sarnoff (msarnoff.org/6809) - January 25, 2011
+                              3 ;
+                              4 
+                              5 ;;; counts number of 16KB memory pages present
+                              6 ;;; arguments:	none
+                              7 ;;; returns:	number of pages in NUMRAMPAGES
+                              8 ;;;		total memory size, in BCD kilobytes, in RAM_KB_BCD
+                              9 ;;; destroys:	overwrites first byte of each 16K page
+   E035                      10 CALCRAMSIZE::
+                             11 ; clear starting byte of all 256 possible pages
+   E035 CC 00 16      [ 3]   12 		ldd	#0x0016		;assume at least one page
+   E038 DD 13         [ 5]   13 		std	*RAM_KB_BCD
+   E03A B7 C0 01      [ 5]   14 1$:		sta	PAGE
+   E03D 7F 80 00      [ 7]   15 		clr	XRAMSTART
+   E040 4C            [ 2]   16 		inca
+   E041 26 F7         [ 3]   17 		bne	1$
+                             18 ; set starting byte of page 0 to magic value (all others will be 0)
+   E043 7F C0 01      [ 7]   19 		clr	PAGE
+   E046 86 A5         [ 2]   20 		lda	#0xA5
+   E048 B7 00 00      [ 5]   21 		sta	0x0000
+                             22 ; iterate over all pages until we wrap around
+                             23 ; at that point, the value in 0x8000 should be the magic value
+   E04B 7C C0 01      [ 7]   24 countpages:	inc	PAGE
+   E04E 86 A5         [ 2]   25 		lda	#0xA5
+   E050 B1 80 00      [ 5]   26 		cmpa	XRAMSTART
+   E053 27 10         [ 3]   27 		beq	countdone
+   E055 86 16         [ 2]   28 		lda	#0x16		;add 16 to KB count
+   E057 9B 14         [ 4]   29 		adda	*RAM_KB_BCD+1
+   E059 19            [ 2]   30 		daa
+   E05A 97 14         [ 4]   31 		sta	*RAM_KB_BCD+1
+   E05C 86 00         [ 2]   32 		lda	#0		;don't clear carry flag
+   E05E 99 13         [ 4]   33 		adca	*RAM_KB_BCD
+   E060 19            [ 2]   34 		daa
+   E061 97 13         [ 4]   35 		sta	*RAM_KB_BCD
+   E063 20 E6         [ 3]   36 		bra	countpages
+                             37 ; get page count
+   E065 4F            [ 2]   38 countdone:	clra
+   E066 F6 C0 01      [ 5]   39 		ldb	PAGE
+   E069 5A            [ 2]   40 		decb		;make sure 0 is interpreted as 256
+   E06A C3 00 01      [ 4]   41 		addd	#1
+   E06D D7 12         [ 4]   42 		stb	*NUMRAMPAGES
+   E06F 39            [ 5]   43 		rts
+                             44 
+                             89 		.include "uart.asm"
+                              1 ; vim:noet:sw=8:ts=8:ai:syn=as6809
+                              2 ; Matt Sarnoff (msarnoff.org/6809) - May 26, 2010
+                              3 
+                              4 ;************ 16C550 UART routines ************
+                              5 		
+                              6 ;;; initialize the UART (8 data bits, no parity, 1 stop bit)
+                              7 ;;; arguments:	baud rate divisor in X (little-endian)
+                              8 ;;; returns:	none
+                              9 ;;; destroys:	A
+                             10 ;;; Use one of the B* baud rate constants, they are already byte-swapped.
+   E070 7F C4 02      [ 7]   11 UART_INIT::	clr	UART_FCR	;disable FIFO
+   E073 7F C4 01      [ 7]   12 		clr	UART_IER	;interrupts off
+   E076 86 0C         [ 2]   13 		lda	#0b00001100	;clear modem controls, LED off
+   E078 B7 C4 04      [ 5]   14 		sta	UART_MCR
+   E07B 86 83         [ 2]   15 		lda	#0b10000011	;8 data bits, no parity, 1 stop bit,
+   E07D B7 C4 03      [ 5]   16 		sta	UART_LCR	; enable divisor latch
+   E080 BF C4 00      [ 6]   17 		stx	UART_DLL	;store divisor
+   E083 84 7F         [ 2]   18 		anda	#0b01111111	;disable divisor latch
+   E085 B7 C4 03      [ 5]   19 		sta	UART_LCR
+   E088 39            [ 5]   20 		rts
+                             21 
+                             22 ;;; install input/output handlers
+                             23 ;;; arguments:	none
+                             24 ;;; returns:	none
+                             25 ;;; destroys:	D
+   E089 CC E0 98      [ 3]   26 UART_IO::	ldd	#UART_OUTCH
+   E08C DD 0E         [ 5]   27 		std	*OUTCH
+   E08E CC E0 A7      [ 3]   28 		ldd	#UART_INCH
+   E091 DD 10         [ 5]   29 		std	*INCH
+   E093 39            [ 5]   30 		rts
+                             31 
+                     0000    32 	.if 0
+                             33 ;;; set the UART baud rate
+                             34 ;;; arguments:	baud rate divisor in D, MSB first
+                             35 ;;; returns:	none
+                             36 ;;; destroys:	A,B
+                             37 UART_SETBAUD::	pshs	d		;save divisor
+                             38 		lda	UART_LCR	;enable divisor latch
+                             39 		ora	#0b10000000
+                             40 		sta	UART_LCR
+                             41 		puls	d		;restore divisor
+                             42 		exg	a,b		;make little-endian
+                             43 		std	UART_DLL
+                             44 		lda	UART_LCR	;disable divisor latch
+                             45 		anda	#0b01111111
+                             46 		sta	UART_LCR
+                             47 		rts
+                             48 	.endif
+                             49 
+                             50 ;;; set the tricolor status LED (connected to UART pins OP1, OP2)
+                             51 ;;; arguments:	color value in B (LED_RED, LED_YELLOW, LED_GREEN, or LED_OFF)
+                             52 ;;; returns:	none
+                             53 ;;; destroys:	none
+   E094 F7 C4 04      [ 5]   54 UART_SETLED::	stb	UART_MCR
+   E097 39            [ 5]   55 		rts
+                             56 
+                             57 ;;; send a character over the UART
+                             58 ;;; arguments:	character in B
+                             59 ;;; returns:	none
+                             60 ;;; destroys:	none
+   E098 34 04         [ 6]   61 UART_OUTCH::	pshs	b		;reuse b for status check
+   E09A C6 20         [ 2]   62 		ldb	#0b00100000	;transmit holding register empty?	
+   E09C F5 C4 05      [ 5]   63 1$:		bitb	UART_LSR
+   E09F 27 FB         [ 3]   64 		beq	1$		;if not, wait
+   E0A1 35 04         [ 6]   65 		puls	b
+                             66 		;fall through
+                             67 
+                             68 ;;; send a character over the UART without waiting
+                             69 ;;; arguments:	character in B
+                             70 ;;; returns:	none
+                             71 ;;; destroys:	none
+   E0A3 F7 C4 00      [ 5]   72 UART_OUTCH_NW::	stb	UART_THR
+   E0A6 39            [ 5]   73 		rts
+                             74 
+                             75 ;;; waits for a character to be received from the UART and returns it in B
+                             76 ;;; arguments:	none
+                             77 ;;; returns:	character in B
+                             78 ;;; destroys:	B
+   E0A7 C6 01         [ 2]   79 UART_INCH::	ldb	#0b00000001	;receive data ready?
+   E0A9 F5 C4 05      [ 5]   80 1$:		bitb	UART_LSR
+   E0AC 27 FB         [ 3]   81 		beq	1$		;if not, wait
+   E0AE F6 C4 00      [ 5]   82 		ldb	UART_RHR	;get the character and return
+   E0B1 39            [ 5]   83 		rts
+                             84 
+                             90 		.include "output.asm"
+                              1 ; vim:noet:sw=8:ts=8:ai:syn=as6809
+                              2 ; Matt Sarnoff (msarnoff.org/6809) - May 26, 2010
+                              3 
+                              4 ;************ Console output routines ************
+                              5 ; Address OUTCH should contain a pointer to the 'character output' function;
+                              6 ; it should accept the character to print in B
+                              7 ; call with: jsr [OUTCH]
+                              8 
+                              9 ;;; print newline (CRLF)
+                             10 ;;; arguments:	none
+                             11 ;;; returns:	none
+                             12 ;;; destroys:	B
+   E0B2 C6 0D         [ 2]   13 OUTNL::		ldb	#0x0d
+   E0B4 AD 9F 00 0E   [12]   14 		jsr	[OUTCH]
+   E0B8 C6 0A         [ 2]   15 		ldb	#0x0a
+   E0BA 6E 9F 00 0E   [ 8]   16 		jmp	[OUTCH]
+                             17 
+                             18 ;;; print space
+                             19 ;;; arguments:	none
+                             20 ;;; returns:	none
+                             21 ;;; destroys:	B
+   E0BE C6 20         [ 2]   22 OUTSP::		ldb	#0x20
+   E0C0 6E 9F 00 0E   [ 8]   23 		jmp	[OUTCH]
+                             24 
+                             25 ;;; print backspace
+                             26 ;;; arguments:	none
+                             27 ;;; returns:	none
+                             28 ;;; destroys:	B
+   E0C4 C6 08         [ 2]   29 OUTBS::		ldb	#0x08
+   E0C6 6E 9F 00 0E   [ 8]   30 		jmp	[OUTCH]
+                             31 
+                             32 ;;; print null-terminated string
+                             33 ;;; arguments:	string pointer in X
+                             34 ;;; returns:	none
+                             35 ;;; destroys:	B
+   E0CA E6 80         [ 6]   36 OUTSTR::	ldb	,x+
+   E0CC 27 06         [ 3]   37 		beq	osdone
+   E0CE AD 9F 00 0E   [12]   38 		jsr	[OUTCH]
+   E0D2 20 F6         [ 3]   39 		bra	OUTSTR
+   E0D4 39            [ 5]   40 osdone:		rts
+                             41 
+                             42 ;;; print null-terminated string followed by newline
+                             43 ;;; arguments:	string pointer in X
+                             44 ;;; returns:	none
+                             45 ;;; destroys:	B
+   E0D5 E6 80         [ 6]   46 OUTSTRNL::	ldb	,x+
+   E0D7 27 D9         [ 3]   47 		beq	OUTNL
+   E0D9 AD 9F 00 0E   [12]   48 		jsr	[OUTCH]
+   E0DD 20 F6         [ 3]   49 		bra	OUTSTRNL
+                             50 
+                             51 ;;; print n characters of a string, ignoring null terminator
+                             52 ;;; arguments:	string pointer in X
+                             53 ;;;		count in A (0-255)
+                             54 ;;; returns:	none
+                             55 ;;; destroys:	B
+   E0DF 4D            [ 2]   56 OUTSTRN::	tsta
+   E0E0 27 F2         [ 3]   57 		beq	osdone
+   E0E2 E6 80         [ 6]   58 		ldb	,x+
+   E0E4 AD 9F 00 0E   [12]   59 		jsr	[OUTCH]
+   E0E8 4A            [ 2]   60 		deca
+   E0E9 20 F4         [ 3]   61 		bra	OUTSTRN
+                             62 
+                             63 ;;; print word in D as hexadecimal
+                             64 ;;; arguments:	word in D (big-endian)
+                             65 ;;; returns:	none
+                             66 ;;; destroys:	D
+   E0EB 34 04         [ 6]   67 OUTHEXW::	pshs	b		;save lsb
+   E0ED 1F 89         [ 6]   68 		tfr	a,b
+   E0EF 8D 02         [ 7]   69 		bsr	OUTHEXB		;print msb
+   E0F1 35 04         [ 6]   70 outhexw2:	puls	b		;restore msb
+                             71 		;fall through and print lsb
+                             72 
+                             73 ;;; print byte in B as hexadecimal
+                             74 ;;; arguments:	byte in B
+                             75 ;;; returns:	none
+                             76 ;;; destroys:	B
+   E0F3 34 04         [ 6]   77 OUTHEXB::	pshs	b		;save for lsd
+   E0F5 54            [ 2]   78 		lsrb
+   E0F6 54            [ 2]   79 		lsrb
+   E0F7 54            [ 2]   80 		lsrb
+   E0F8 54            [ 2]   81 		lsrb
+   E0F9 8D 02         [ 7]   82 		bsr	OUTHEXD		;print msd
+   E0FB 35 04         [ 6]   83 		puls	b		;restore lsd
+                             84 		;fall through and print lsd
+                             85 
+                             86 ;;; print hexadecimal digit in lower 4 bits of B
+                             87 ;;; arguments:	digit in B
+                             88 ;;; returns:	none
+                             89 ;;; destroys:	B
+   E0FD C4 0F         [ 2]   90 OUTHEXD::	andb	#0b00001111	;lsd only
+   E0FF CA 30         [ 2]   91 		orb	#'0
+   E101 C1 3A         [ 2]   92 		cmpb	#'9+1		;decimal digit?
+   E103 25 02         [ 3]   93 		blo	oxdprint	;if so, print it
+   E105 CB 07         [ 2]   94 		addb	#7		;no, add offset
+   E107 6E 9F 00 0E   [ 8]   95 oxdprint:	jmp	[OUTCH]
+                             96 
+                             97 
+                             98 ;;; print 4-digit BCD number in D without leading zeros
+                             99 ;;; arguments:	BCD number in D
+                            100 ;;; returns:	none
+                            101 ;;; destroys:	D
+                            102 ;;; Also can be used to print a hexadecimal number without leading zeros.
+   E10B 4D            [ 2]  103 OUTBCDW::	tsta			;only 1 byte?
+   E10C 27 0C         [ 3]  104 		beq	OUTBCDB
+   E10E 85 F0         [ 2]  105 		bita	#0b11110000	;most significant digit?
+   E110 26 D9         [ 3]  106 		bne	OUTHEXW		;yes, print 4 digits
+   E112 1E 98         [ 8]  107 		exg	b,a		;3 digits, save lower two in A
+   E114 8D E7         [ 7]  108 		bsr	OUTHEXD		;print high digit
+   E116 1F 89         [ 6]  109 		tfr	a,b		;restore lower digits
+   E118 20 D9         [ 3]  110 		bra	OUTHEXB		;print lower digits
+                            111 
+                            112 ;;; print 2-digit BCD number in B without a leading zero
+                            113 ;;; arguments:	BCD number in B
+                            114 ;;; returns:	none
+                            115 ;;; destroys:	B
+                            116 ;;; Also can be used to print a hexadecimal number without a leading zero.
+   E11A C5 F0         [ 2]  117 OUTBCDB::	bitb	#0b11110000	;most significant digit?
+   E11C 26 D5         [ 3]  118 		bne	OUTHEXB		;yes, print 2 digits
+   E11E 20 DD         [ 3]  119 		bra	OUTHEXD		;no, print 1 digit
+                             91 		.include "tms9918.asm"
+                              1 ; vim:noet:sw=8:ts=8:ai:syn=as6809
+                              2 ; Matt Sarnoff (msarnoff.org/6809) - November 13, 2010
+                              3 ;
+                              4 ;************ TMS9918A/9928A/9929A Video Display Processor ************
+                              5 ;
+                              6 
+                     0000     7 TEXT_NAMETABLE	.equ	0x0000		;text mode VRAM addresses
+                     0800     8 TEXT_PATTABLE	.equ	0x0800
+                              9 
+                             10 ;;; clear all VDP memory
+                             11 ;;; arguments:	none
+                             12 ;;; returns:	none
+                             13 ;;; destroys:	A,B
+   E120 34 10         [ 6]   14 VDP_CLEAR::	pshs	x
+   E122 CC 40 00      [ 3]   15 		ldd	#(VRAM|0x0000)	;write address, start at 0x0000
+   E125 F7 CC 01      [ 5]   16 		stb	VDP_REG		;low byte first
+   E128 B7 CC 01      [ 5]   17 		sta	VDP_REG		;then high byte
+   E12B 8E 40 00      [ 3]   18 		ldx	#16384		;clear all 16K
+   E12E 4F            [ 2]   19 		clra
+   E12F 20 02         [ 3]   20 		bra	fill_loop
+                             21 
+                             22 
+                             23 ;;; fill a portion of VDP memory with a byte
+                             24 ;;; arguments:	VRAM address should be set already
+                             25 ;;;		number of bytes to fill in X
+                             26 ;;;		byte value in A
+                             27 ;;; returns:	none
+                             28 ;;; destroys:	none
+   E131 34 10         [ 6]   29 VDP_FILL::	pshs	x
+   E133 B7 CC 00      [ 5]   30 fill_loop:	sta	VDP_VRAM
+   E136 30 1F         [ 5]   31 		leax	-1,x
+   E138 26 F9         [ 3]   32 		bne	fill_loop
+   E13A 35 90         [ 7]   33 		puls	x,pc		;restore X and return
+                             34 
+                             35 
+                             36 ;;; clear VRAM and initialize text mode
+                             37 ;;; arguments:	none
+                             38 ;;; returns:	none
+                             39 ;;; destroys:
+   E13C 8E E1 EE      [ 3]   40 VDP_INITTEXT::	ldx	#text_vdp_regs	;initialize registers
+   E13F 8D 13         [ 7]   41 		bsr	VDP_SET_REGS
+   E141 8D DD         [ 7]   42 		bsr	VDP_CLEAR	;clear VRAM
+                             43 ; copy character set to pattern table
+   E143 CC 48 00      [ 3]   44 		ldd	#(VRAM|TEXT_PATTABLE)
+   E146 F7 CC 01      [ 5]   45 		stb	VDP_REG
+   E149 B7 CC 01      [ 5]   46 		sta	VDP_REG
+   E14C 8E E1 F6      [ 3]   47 		ldx	#TEXTFONT
+   E14F C6 80         [ 2]   48 		ldb	#128
+   E151 8D 10         [ 7]   49 		bsr	VDP_LOADPATS
+   E153 39            [ 5]   50 		rts
+                             51 
+                             52 
+                             53 ;;; set VDP registers
+                             54 ;;; arguments:	pointer to 8-byte register set in X
+                             55 ;;; returns:	none
+                             56 ;;; destroys:	A,B,X
+   E154 C6 80         [ 2]   57 VDP_SET_REGS::	ldb	#0x80		;B holds register number, start at 0
+   E156 A6 80         [ 6]   58 1$:		lda	,x+		;A holds register value
+   E158 B7 CC 01      [ 5]   59 		sta	VDP_REG		;write data byte
+   E15B F7 CC 01      [ 5]   60 		stb	VDP_REG		;then write register number
+   E15E 5C            [ 2]   61 		incb
+   E15F C1 88         [ 2]   62 		cmpb	#0x88
+   E161 26 F3         [ 3]   63 		bne	1$
+                             64 
+                             65 
+                             66 ;;; load patterns into VRAM at current VRAM address
+                             67 ;;; arguments:	VRAM address should be set already
+                             68 ;;;		pointer to start of first pattern in X
+                             69 ;;;		number of patterns (8 byte blocks) in B
+                             70 ;;;		(0 in B copies 256 patterns)
+                             71 ;;; returns:	X points to byte after last byte copied
+                             72 ;;; destroys:	A, B, X
+   E163 A6 80         [ 6]   73 VDP_LOADPATS::	lda	,x+		;copy unrolled 8 times
+   E165 B7 CC 00      [ 5]   74 		sta	VDP_VRAM
+   E168 A6 80         [ 6]   75 		lda	,x+
+   E16A B7 CC 00      [ 5]   76 		sta	VDP_VRAM
+   E16D A6 80         [ 6]   77 		lda	,x+
+   E16F B7 CC 00      [ 5]   78 		sta	VDP_VRAM
+   E172 A6 80         [ 6]   79 		lda	,x+
+   E174 B7 CC 00      [ 5]   80 		sta	VDP_VRAM
+   E177 A6 80         [ 6]   81 		lda	,x+
+   E179 B7 CC 00      [ 5]   82 		sta	VDP_VRAM
+   E17C A6 80         [ 6]   83 		lda	,x+
+   E17E B7 CC 00      [ 5]   84 		sta	VDP_VRAM
+   E181 A6 80         [ 6]   85 		lda	,x+
+   E183 B7 CC 00      [ 5]   86 		sta	VDP_VRAM
+   E186 A6 80         [ 6]   87 		lda	,x+
+   E188 B7 CC 00      [ 5]   88 		sta	VDP_VRAM
+   E18B 5A            [ 2]   89 		decb
+   E18C 26 D5         [ 3]   90 		bne	VDP_LOADPATS
+   E18E 39            [ 5]   91 		rts
+                             92 
+                             93 ;;; load patterns. inverted, into VRAM at current VRAM address
+                             94 ;;; arguments:	VRAM address should be set already
+                             95 ;;;		pointer to start of first pattern in X
+                             96 ;;;		number of patterns (8 byte blocks) in B
+                             97 ;;;		(0 in B copies 256 patterns)
+                             98 ;;; returns:	X points to byte after last byte copied
+                             99 ;;; destroys:	A, B, X
+                            100 ;;;
+                            101 ;;; patterns are bit-flipped before being loaded into VRAM
+   E18F A6 80         [ 6]  102 VDP_LOADIPATS::	lda	,x+		;copy unrolled 8 times
+   E191 43            [ 2]  103 		coma
+   E192 B7 CC 00      [ 5]  104 		sta	VDP_VRAM
+   E195 A6 80         [ 6]  105 		lda	,x+
+   E197 43            [ 2]  106 		coma
+   E198 B7 CC 00      [ 5]  107 		sta	VDP_VRAM
+   E19B A6 80         [ 6]  108 		lda	,x+
+   E19D 43            [ 2]  109 		coma
+   E19E B7 CC 00      [ 5]  110 		sta	VDP_VRAM
+   E1A1 A6 80         [ 6]  111 		lda	,x+
+   E1A3 43            [ 2]  112 		coma
+   E1A4 B7 CC 00      [ 5]  113 		sta	VDP_VRAM
+   E1A7 A6 80         [ 6]  114 		lda	,x+
+   E1A9 43            [ 2]  115 		coma
+   E1AA B7 CC 00      [ 5]  116 		sta	VDP_VRAM
+   E1AD A6 80         [ 6]  117 		lda	,x+
+   E1AF 43            [ 2]  118 		coma
+   E1B0 B7 CC 00      [ 5]  119 		sta	VDP_VRAM
+   E1B3 A6 80         [ 6]  120 		lda	,x+
+   E1B5 43            [ 2]  121 		coma
+   E1B6 B7 CC 00      [ 5]  122 		sta	VDP_VRAM
+   E1B9 A6 80         [ 6]  123 		lda	,x+
+   E1BB 43            [ 2]  124 		coma
+   E1BC B7 CC 00      [ 5]  125 		sta	VDP_VRAM
+   E1BF 5A            [ 2]  126 		decb
+   E1C0 26 CD         [ 3]  127 		bne	VDP_LOADIPATS
+   E1C2 39            [ 5]  128 		rts
+                            129 
+                            130 ;;; print a positioned string into VRAM
+                            131 ;;; a "positioned string" is a null-terminated string,
+                            132 ;;; prefixed with a two-byte destination address (screen position)
+                            133 ;;; arguments:	pointer to positioned string in X
+                            134 ;;; returns:	X advanced
+                            135 ;;; destroys:	A, B
+   E1C3 EC 81         [ 8]  136 VDP_PRINTPSTR::	ldd	,x++		;read two bytes into D
+                            137 
+                            138 ;;; print a null-terminated string into VRAM
+                            139 ;;; arguments:	VRAM address in D
+                            140 ;;;		pointer to start of string in X
+                            141 ;;; returns:	X advanced
+                            142 ;;; destroys:	A, B
+   E1C5 8A 40         [ 2]  143 VDP_PRINTSTR::	ora	#0x40		;set address marker
+   E1C7 F7 CC 01      [ 5]  144 		stb	VDP_REG		;set low byte of address
+   E1CA B7 CC 01      [ 5]  145 		sta	VDP_REG		;set high byte of address
+                            146 
+                            147 ;;; print a null-terminated string into VRAM at current address
+                            148 ;;; arguments:	pointer to start of string in X
+                            149 ;;; returns:	X advanced
+                            150 ;;; destroys:	B
+   E1CD E6 80         [ 6]  151 VDP_PRINTSTRC::	ldb	,x+
+   E1CF 27 05         [ 3]  152 		beq	vpdone		;stop when nul
+   E1D1 F7 CC 00      [ 5]  153 		stb	VDP_VRAM
+   E1D4 20 F7         [ 3]  154 		bra	VDP_PRINTSTRC
+   E1D6 39            [ 5]  155 vpdone:		rts
+                            156 
+                            157 
+                            158 ;;; set the VRAM address
+                            159 ;;; arguments:	address in D
+                            160 ;;; returns:	none
+                            161 ;;; destroys:	A
+   E1D7 8A 40         [ 2]  162 VDP_SETADDR::	ora	#0x40		;set address marker
+   E1D9 F7 CC 01      [ 5]  163 vdpwrite:	stb	VDP_REG		;set low byte of address
+   E1DC B7 CC 01      [ 5]  164 		sta	VDP_REG		;set high byte of address
+   E1DF 39            [ 5]  165 		rts
+                            166 
+                            167 
+                            168 ;;; simple method to print a character into VRAM 
+                            169 ;;; may be used for the OUTCH vector
+                            170 ;;; arguments:	character in B
+                            171 ;;; returns:	none
+                            172 ;;; destroys:	none
+   E1E0 F7 CC 00      [ 5]  173 VDP_OUTCH::	stb	VDP_VRAM
+   E1E3 39            [ 5]  174 		rts
+                            175 
+                            176 
+                            177 ;;; turn on the display after setup with VDP_INITTEXT
+                            178 ;;; arguments:	none
+                            179 ;;; returns:	none
+                            180 ;;; destroys:	A,B
+   E1E4 CC D0 81      [ 3]  181 VDP_TEXT_ON::	ldd	#0xD081
+   E1E7 B7 CC 01      [ 5]  182 		sta	VDP_REG
+   E1EA F7 CC 01      [ 5]  183 		stb	VDP_REG
+   E1ED 39            [ 5]  184 		rts
+                            185 
+                            186 
+                            187 ;;; text mode registers
+                     0090   188 TEXT_REG_1	.equ	0x90		;text mode, 16K, display off, ints off
+   E1EE 00                  189 text_vdp_regs:	.fcb	0x00		;text mode
+   E1EF 90                  190 		.fcb	TEXT_REG_1
+   E1F0 00                  191 		.fcb	TEXT_NAMETABLE/0x0400
+   E1F1 00                  192 		.fcb	0x00		;no colors
+   E1F2 01                  193 		.fcb	TEXT_PATTABLE/0x0800
+   E1F3 00                  194 		.fcb	0x00		;no sprite attributes
+   E1F4 00                  195 		.fcb	0x00		;no sprite patterns
+   E1F5 F1                  196 		.fcb	0xF1		;white text, black background
+                            197 
+                            198 ;;; 6x8 console font
+   E1F6                     199 TEXTFONT::
+                            200 	.include "textfont.inc"
+                              1 ; char 0
+   E1F6 00                    2 	.fcb	0b00000000
+   E1F7 00                    3 	.fcb	0b00000000
+   E1F8 00                    4 	.fcb	0b00000000
+   E1F9 00                    5 	.fcb	0b00000000
+   E1FA 00                    6 	.fcb	0b00000000
+   E1FB 00                    7 	.fcb	0b00000000
+   E1FC 00                    8 	.fcb	0b00000000
+   E1FD 00                    9 	.fcb	0b00000000
+                             10 ; char 1
+   E1FE 00                   11 	.fcb	0b00000000
+   E1FF 20                   12 	.fcb	0b00100000
+   E200 70                   13 	.fcb	0b01110000
+   E201 F8                   14 	.fcb	0b11111000
+   E202 70                   15 	.fcb	0b01110000
+   E203 20                   16 	.fcb	0b00100000
+   E204 00                   17 	.fcb	0b00000000
+   E205 00                   18 	.fcb	0b00000000
+                             19 ; char 2
+   E206 A8                   20 	.fcb	0b10101000
+   E207 54                   21 	.fcb	0b01010100
+   E208 A8                   22 	.fcb	0b10101000
+   E209 54                   23 	.fcb	0b01010100
+   E20A A8                   24 	.fcb	0b10101000
+   E20B 54                   25 	.fcb	0b01010100
+   E20C A8                   26 	.fcb	0b10101000
+   E20D 54                   27 	.fcb	0b01010100
+                             28 ; char 3
+   E20E 20                   29 	.fcb	0b00100000
+   E20F 70                   30 	.fcb	0b01110000
+   E210 A8                   31 	.fcb	0b10101000
+   E211 20                   32 	.fcb	0b00100000
+   E212 20                   33 	.fcb	0b00100000
+   E213 20                   34 	.fcb	0b00100000
+   E214 20                   35 	.fcb	0b00100000
+   E215 00                   36 	.fcb	0b00000000
+                             37 ; char 4
+   E216 20                   38 	.fcb	0b00100000
+   E217 20                   39 	.fcb	0b00100000
+   E218 20                   40 	.fcb	0b00100000
+   E219 20                   41 	.fcb	0b00100000
+   E21A A8                   42 	.fcb	0b10101000
+   E21B 70                   43 	.fcb	0b01110000
+   E21C 20                   44 	.fcb	0b00100000
+   E21D 00                   45 	.fcb	0b00000000
+                             46 ; char 5
+   E21E 00                   47 	.fcb	0b00000000
+   E21F 20                   48 	.fcb	0b00100000
+   E220 40                   49 	.fcb	0b01000000
+   E221 F8                   50 	.fcb	0b11111000
+   E222 40                   51 	.fcb	0b01000000
+   E223 20                   52 	.fcb	0b00100000
+   E224 00                   53 	.fcb	0b00000000
+   E225 00                   54 	.fcb	0b00000000
+                             55 ; char 6
+   E226 00                   56 	.fcb	0b00000000
+   E227 20                   57 	.fcb	0b00100000
+   E228 10                   58 	.fcb	0b00010000
+   E229 F8                   59 	.fcb	0b11111000
+   E22A 10                   60 	.fcb	0b00010000
+   E22B 20                   61 	.fcb	0b00100000
+   E22C 00                   62 	.fcb	0b00000000
+   E22D 00                   63 	.fcb	0b00000000
+                             64 ; char 7
+   E22E 60                   65 	.fcb	0b01100000
+   E22F 90                   66 	.fcb	0b10010000
+   E230 90                   67 	.fcb	0b10010000
+   E231 60                   68 	.fcb	0b01100000
+   E232 00                   69 	.fcb	0b00000000
+   E233 00                   70 	.fcb	0b00000000
+   E234 00                   71 	.fcb	0b00000000
+   E235 00                   72 	.fcb	0b00000000
+                             73 ; char 8
+   E236 20                   74 	.fcb	0b00100000
+   E237 20                   75 	.fcb	0b00100000
+   E238 F8                   76 	.fcb	0b11111000
+   E239 20                   77 	.fcb	0b00100000
+   E23A 20                   78 	.fcb	0b00100000
+   E23B 00                   79 	.fcb	0b00000000
+   E23C F8                   80 	.fcb	0b11111000
+   E23D 00                   81 	.fcb	0b00000000
+                             82 ; char 9
+   E23E 00                   83 	.fcb	0b00000000
+   E23F 00                   84 	.fcb	0b00000000
+   E240 00                   85 	.fcb	0b00000000
+   E241 00                   86 	.fcb	0b00000000
+   E242 00                   87 	.fcb	0b00000000
+   E243 00                   88 	.fcb	0b00000000
+   E244 A8                   89 	.fcb	0b10101000
+   E245 00                   90 	.fcb	0b00000000
+                             91 ; char 10
+   E246 00                   92 	.fcb	0b00000000
+   E247 00                   93 	.fcb	0b00000000
+   E248 08                   94 	.fcb	0b00001000
+   E249 10                   95 	.fcb	0b00010000
+   E24A A0                   96 	.fcb	0b10100000
+   E24B 40                   97 	.fcb	0b01000000
+   E24C 00                   98 	.fcb	0b00000000
+   E24D 00                   99 	.fcb	0b00000000
+                            100 ; char 11
+   E24E 30                  101 	.fcb	0b00110000
+   E24F 30                  102 	.fcb	0b00110000
+   E250 30                  103 	.fcb	0b00110000
+   E251 F0                  104 	.fcb	0b11110000
+   E252 F0                  105 	.fcb	0b11110000
+   E253 00                  106 	.fcb	0b00000000
+   E254 00                  107 	.fcb	0b00000000
+   E255 00                  108 	.fcb	0b00000000
+                            109 ; char 12
+   E256 00                  110 	.fcb	0b00000000
+   E257 00                  111 	.fcb	0b00000000
+   E258 00                  112 	.fcb	0b00000000
+   E259 F0                  113 	.fcb	0b11110000
+   E25A F0                  114 	.fcb	0b11110000
+   E25B 30                  115 	.fcb	0b00110000
+   E25C 30                  116 	.fcb	0b00110000
+   E25D 30                  117 	.fcb	0b00110000
+                            118 ; char 13
+   E25E 00                  119 	.fcb	0b00000000
+   E25F 00                  120 	.fcb	0b00000000
+   E260 00                  121 	.fcb	0b00000000
+   E261 3C                  122 	.fcb	0b00111100
+   E262 3C                  123 	.fcb	0b00111100
+   E263 30                  124 	.fcb	0b00110000
+   E264 30                  125 	.fcb	0b00110000
+   E265 30                  126 	.fcb	0b00110000
+                            127 ; char 14
+   E266 30                  128 	.fcb	0b00110000
+   E267 30                  129 	.fcb	0b00110000
+   E268 30                  130 	.fcb	0b00110000
+   E269 3C                  131 	.fcb	0b00111100
+   E26A 3C                  132 	.fcb	0b00111100
+   E26B 00                  133 	.fcb	0b00000000
+   E26C 00                  134 	.fcb	0b00000000
+   E26D 00                  135 	.fcb	0b00000000
+                            136 ; char 15
+   E26E 30                  137 	.fcb	0b00110000
+   E26F 30                  138 	.fcb	0b00110000
+   E270 30                  139 	.fcb	0b00110000
+   E271 FC                  140 	.fcb	0b11111100
+   E272 FC                  141 	.fcb	0b11111100
+   E273 30                  142 	.fcb	0b00110000
+   E274 30                  143 	.fcb	0b00110000
+   E275 30                  144 	.fcb	0b00110000
+                            145 ; char 16
+   E276 FC                  146 	.fcb	0b11111100
+   E277 FC                  147 	.fcb	0b11111100
+   E278 00                  148 	.fcb	0b00000000
+   E279 00                  149 	.fcb	0b00000000
+   E27A 00                  150 	.fcb	0b00000000
+   E27B 00                  151 	.fcb	0b00000000
+   E27C 00                  152 	.fcb	0b00000000
+   E27D 00                  153 	.fcb	0b00000000
+                            154 ; char 17
+   E27E 00                  155 	.fcb	0b00000000
+   E27F 00                  156 	.fcb	0b00000000
+   E280 FC                  157 	.fcb	0b11111100
+   E281 FC                  158 	.fcb	0b11111100
+   E282 00                  159 	.fcb	0b00000000
+   E283 00                  160 	.fcb	0b00000000
+   E284 00                  161 	.fcb	0b00000000
+   E285 00                  162 	.fcb	0b00000000
+                            163 ; char 18
+   E286 00                  164 	.fcb	0b00000000
+   E287 00                  165 	.fcb	0b00000000
+   E288 00                  166 	.fcb	0b00000000
+   E289 FC                  167 	.fcb	0b11111100
+   E28A FC                  168 	.fcb	0b11111100
+   E28B 00                  169 	.fcb	0b00000000
+   E28C 00                  170 	.fcb	0b00000000
+   E28D 00                  171 	.fcb	0b00000000
+                            172 ; char 19
+   E28E 00                  173 	.fcb	0b00000000
+   E28F 00                  174 	.fcb	0b00000000
+   E290 00                  175 	.fcb	0b00000000
+   E291 00                  176 	.fcb	0b00000000
+   E292 FC                  177 	.fcb	0b11111100
+   E293 FC                  178 	.fcb	0b11111100
+   E294 00                  179 	.fcb	0b00000000
+   E295 00                  180 	.fcb	0b00000000
+                            181 ; char 20
+   E296 00                  182 	.fcb	0b00000000
+   E297 00                  183 	.fcb	0b00000000
+   E298 00                  184 	.fcb	0b00000000
+   E299 00                  185 	.fcb	0b00000000
+   E29A 00                  186 	.fcb	0b00000000
+   E29B 00                  187 	.fcb	0b00000000
+   E29C FC                  188 	.fcb	0b11111100
+   E29D FC                  189 	.fcb	0b11111100
+                            190 ; char 21
+   E29E 30                  191 	.fcb	0b00110000
+   E29F 30                  192 	.fcb	0b00110000
+   E2A0 30                  193 	.fcb	0b00110000
+   E2A1 3C                  194 	.fcb	0b00111100
+   E2A2 3C                  195 	.fcb	0b00111100
+   E2A3 30                  196 	.fcb	0b00110000
+   E2A4 30                  197 	.fcb	0b00110000
+   E2A5 30                  198 	.fcb	0b00110000
+                            199 ; char 22
+   E2A6 30                  200 	.fcb	0b00110000
+   E2A7 30                  201 	.fcb	0b00110000
+   E2A8 30                  202 	.fcb	0b00110000
+   E2A9 F0                  203 	.fcb	0b11110000
+   E2AA F0                  204 	.fcb	0b11110000
+   E2AB 30                  205 	.fcb	0b00110000
+   E2AC 30                  206 	.fcb	0b00110000
+   E2AD 30                  207 	.fcb	0b00110000
+                            208 ; char 23
+   E2AE 30                  209 	.fcb	0b00110000
+   E2AF 30                  210 	.fcb	0b00110000
+   E2B0 30                  211 	.fcb	0b00110000
+   E2B1 FC                  212 	.fcb	0b11111100
+   E2B2 FC                  213 	.fcb	0b11111100
+   E2B3 00                  214 	.fcb	0b00000000
+   E2B4 00                  215 	.fcb	0b00000000
+   E2B5 00                  216 	.fcb	0b00000000
+                            217 ; char 24
+   E2B6 00                  218 	.fcb	0b00000000
+   E2B7 00                  219 	.fcb	0b00000000
+   E2B8 00                  220 	.fcb	0b00000000
+   E2B9 FC                  221 	.fcb	0b11111100
+   E2BA FC                  222 	.fcb	0b11111100
+   E2BB 30                  223 	.fcb	0b00110000
+   E2BC 30                  224 	.fcb	0b00110000
+   E2BD 30                  225 	.fcb	0b00110000
+                            226 ; char 25
+   E2BE 30                  227 	.fcb	0b00110000
+   E2BF 30                  228 	.fcb	0b00110000
+   E2C0 30                  229 	.fcb	0b00110000
+   E2C1 30                  230 	.fcb	0b00110000
+   E2C2 30                  231 	.fcb	0b00110000
+   E2C3 30                  232 	.fcb	0b00110000
+   E2C4 30                  233 	.fcb	0b00110000
+   E2C5 30                  234 	.fcb	0b00110000
+                            235 ; char 26
+   E2C6 08                  236 	.fcb	0b00001000
+   E2C7 30                  237 	.fcb	0b00110000
+   E2C8 C0                  238 	.fcb	0b11000000
+   E2C9 30                  239 	.fcb	0b00110000
+   E2CA 08                  240 	.fcb	0b00001000
+   E2CB 00                  241 	.fcb	0b00000000
+   E2CC F8                  242 	.fcb	0b11111000
+   E2CD 00                  243 	.fcb	0b00000000
+                            244 ; char 27
+   E2CE 80                  245 	.fcb	0b10000000
+   E2CF 60                  246 	.fcb	0b01100000
+   E2D0 18                  247 	.fcb	0b00011000
+   E2D1 60                  248 	.fcb	0b01100000
+   E2D2 80                  249 	.fcb	0b10000000
+   E2D3 00                  250 	.fcb	0b00000000
+   E2D4 F8                  251 	.fcb	0b11111000
+   E2D5 00                  252 	.fcb	0b00000000
+                            253 ; char 28
+   E2D6 00                  254 	.fcb	0b00000000
+   E2D7 00                  255 	.fcb	0b00000000
+   E2D8 F8                  256 	.fcb	0b11111000
+   E2D9 50                  257 	.fcb	0b01010000
+   E2DA 50                  258 	.fcb	0b01010000
+   E2DB 50                  259 	.fcb	0b01010000
+   E2DC 98                  260 	.fcb	0b10011000
+   E2DD 00                  261 	.fcb	0b00000000
+                            262 ; char 29
+   E2DE 10                  263 	.fcb	0b00010000
+   E2DF 10                  264 	.fcb	0b00010000
+   E2E0 F8                  265 	.fcb	0b11111000
+   E2E1 20                  266 	.fcb	0b00100000
+   E2E2 F8                  267 	.fcb	0b11111000
+   E2E3 40                  268 	.fcb	0b01000000
+   E2E4 40                  269 	.fcb	0b01000000
+   E2E5 00                  270 	.fcb	0b00000000
+                            271 ; char 30
+   E2E6 30                  272 	.fcb	0b00110000
+   E2E7 48                  273 	.fcb	0b01001000
+   E2E8 40                  274 	.fcb	0b01000000
+   E2E9 E0                  275 	.fcb	0b11100000
+   E2EA 40                  276 	.fcb	0b01000000
+   E2EB 48                  277 	.fcb	0b01001000
+   E2EC B0                  278 	.fcb	0b10110000
+   E2ED 00                  279 	.fcb	0b00000000
+                            280 ; char 31
+   E2EE 00                  281 	.fcb	0b00000000
+   E2EF 00                  282 	.fcb	0b00000000
+   E2F0 00                  283 	.fcb	0b00000000
+   E2F1 20                  284 	.fcb	0b00100000
+   E2F2 00                  285 	.fcb	0b00000000
+   E2F3 00                  286 	.fcb	0b00000000
+   E2F4 00                  287 	.fcb	0b00000000
+   E2F5 00                  288 	.fcb	0b00000000
+                            289 ; char 32
+   E2F6 00                  290 	.fcb	0b00000000
+   E2F7 00                  291 	.fcb	0b00000000
+   E2F8 00                  292 	.fcb	0b00000000
+   E2F9 00                  293 	.fcb	0b00000000
+   E2FA 00                  294 	.fcb	0b00000000
+   E2FB 00                  295 	.fcb	0b00000000
+   E2FC 00                  296 	.fcb	0b00000000
+   E2FD 00                  297 	.fcb	0b00000000
+                            298 ; char 33
+   E2FE 20                  299 	.fcb	0b00100000
+   E2FF 20                  300 	.fcb	0b00100000
+   E300 20                  301 	.fcb	0b00100000
+   E301 20                  302 	.fcb	0b00100000
+   E302 20                  303 	.fcb	0b00100000
+   E303 00                  304 	.fcb	0b00000000
+   E304 20                  305 	.fcb	0b00100000
+   E305 00                  306 	.fcb	0b00000000
+                            307 ; char 34
+   E306 50                  308 	.fcb	0b01010000
+   E307 50                  309 	.fcb	0b01010000
+   E308 50                  310 	.fcb	0b01010000
+   E309 00                  311 	.fcb	0b00000000
+   E30A 00                  312 	.fcb	0b00000000
+   E30B 00                  313 	.fcb	0b00000000
+   E30C 00                  314 	.fcb	0b00000000
+   E30D 00                  315 	.fcb	0b00000000
+                            316 ; char 35
+   E30E 50                  317 	.fcb	0b01010000
+   E30F 50                  318 	.fcb	0b01010000
+   E310 F8                  319 	.fcb	0b11111000
+   E311 50                  320 	.fcb	0b01010000
+   E312 F8                  321 	.fcb	0b11111000
+   E313 50                  322 	.fcb	0b01010000
+   E314 50                  323 	.fcb	0b01010000
+   E315 00                  324 	.fcb	0b00000000
+                            325 ; char 36
+   E316 20                  326 	.fcb	0b00100000
+   E317 78                  327 	.fcb	0b01111000
+   E318 A0                  328 	.fcb	0b10100000
+   E319 70                  329 	.fcb	0b01110000
+   E31A 28                  330 	.fcb	0b00101000
+   E31B F0                  331 	.fcb	0b11110000
+   E31C 20                  332 	.fcb	0b00100000
+   E31D 00                  333 	.fcb	0b00000000
+                            334 ; char 37
+   E31E C0                  335 	.fcb	0b11000000
+   E31F C8                  336 	.fcb	0b11001000
+   E320 10                  337 	.fcb	0b00010000
+   E321 20                  338 	.fcb	0b00100000
+   E322 40                  339 	.fcb	0b01000000
+   E323 98                  340 	.fcb	0b10011000
+   E324 18                  341 	.fcb	0b00011000
+   E325 00                  342 	.fcb	0b00000000
+                            343 ; char 38
+   E326 40                  344 	.fcb	0b01000000
+   E327 A0                  345 	.fcb	0b10100000
+   E328 A0                  346 	.fcb	0b10100000
+   E329 40                  347 	.fcb	0b01000000
+   E32A A8                  348 	.fcb	0b10101000
+   E32B 90                  349 	.fcb	0b10010000
+   E32C 68                  350 	.fcb	0b01101000
+   E32D 00                  351 	.fcb	0b00000000
+                            352 ; char 39
+   E32E 20                  353 	.fcb	0b00100000
+   E32F 20                  354 	.fcb	0b00100000
+   E330 20                  355 	.fcb	0b00100000
+   E331 00                  356 	.fcb	0b00000000
+   E332 00                  357 	.fcb	0b00000000
+   E333 00                  358 	.fcb	0b00000000
+   E334 00                  359 	.fcb	0b00000000
+   E335 00                  360 	.fcb	0b00000000
+                            361 ; char 40
+   E336 10                  362 	.fcb	0b00010000
+   E337 20                  363 	.fcb	0b00100000
+   E338 40                  364 	.fcb	0b01000000
+   E339 40                  365 	.fcb	0b01000000
+   E33A 40                  366 	.fcb	0b01000000
+   E33B 20                  367 	.fcb	0b00100000
+   E33C 10                  368 	.fcb	0b00010000
+   E33D 00                  369 	.fcb	0b00000000
+                            370 ; char 41
+   E33E 40                  371 	.fcb	0b01000000
+   E33F 20                  372 	.fcb	0b00100000
+   E340 10                  373 	.fcb	0b00010000
+   E341 10                  374 	.fcb	0b00010000
+   E342 10                  375 	.fcb	0b00010000
+   E343 20                  376 	.fcb	0b00100000
+   E344 40                  377 	.fcb	0b01000000
+   E345 00                  378 	.fcb	0b00000000
+                            379 ; char 42
+   E346 20                  380 	.fcb	0b00100000
+   E347 A8                  381 	.fcb	0b10101000
+   E348 70                  382 	.fcb	0b01110000
+   E349 20                  383 	.fcb	0b00100000
+   E34A 70                  384 	.fcb	0b01110000
+   E34B A8                  385 	.fcb	0b10101000
+   E34C 20                  386 	.fcb	0b00100000
+   E34D 00                  387 	.fcb	0b00000000
+                            388 ; char 43
+   E34E 00                  389 	.fcb	0b00000000
+   E34F 20                  390 	.fcb	0b00100000
+   E350 20                  391 	.fcb	0b00100000
+   E351 F8                  392 	.fcb	0b11111000
+   E352 20                  393 	.fcb	0b00100000
+   E353 20                  394 	.fcb	0b00100000
+   E354 00                  395 	.fcb	0b00000000
+   E355 00                  396 	.fcb	0b00000000
+                            397 ; char 44
+   E356 00                  398 	.fcb	0b00000000
+   E357 00                  399 	.fcb	0b00000000
+   E358 00                  400 	.fcb	0b00000000
+   E359 00                  401 	.fcb	0b00000000
+   E35A 20                  402 	.fcb	0b00100000
+   E35B 20                  403 	.fcb	0b00100000
+   E35C 40                  404 	.fcb	0b01000000
+   E35D 00                  405 	.fcb	0b00000000
+                            406 ; char 45
+   E35E 00                  407 	.fcb	0b00000000
+   E35F 00                  408 	.fcb	0b00000000
+   E360 00                  409 	.fcb	0b00000000
+   E361 F8                  410 	.fcb	0b11111000
+   E362 00                  411 	.fcb	0b00000000
+   E363 00                  412 	.fcb	0b00000000
+   E364 00                  413 	.fcb	0b00000000
+   E365 00                  414 	.fcb	0b00000000
+                            415 ; char 46
+   E366 00                  416 	.fcb	0b00000000
+   E367 00                  417 	.fcb	0b00000000
+   E368 00                  418 	.fcb	0b00000000
+   E369 00                  419 	.fcb	0b00000000
+   E36A 00                  420 	.fcb	0b00000000
+   E36B 00                  421 	.fcb	0b00000000
+   E36C 20                  422 	.fcb	0b00100000
+   E36D 00                  423 	.fcb	0b00000000
+                            424 ; char 47
+   E36E 00                  425 	.fcb	0b00000000
+   E36F 08                  426 	.fcb	0b00001000
+   E370 10                  427 	.fcb	0b00010000
+   E371 20                  428 	.fcb	0b00100000
+   E372 40                  429 	.fcb	0b01000000
+   E373 80                  430 	.fcb	0b10000000
+   E374 00                  431 	.fcb	0b00000000
+   E375 00                  432 	.fcb	0b00000000
+                            433 ; char 48
+   E376 70                  434 	.fcb	0b01110000
+   E377 88                  435 	.fcb	0b10001000
+   E378 98                  436 	.fcb	0b10011000
+   E379 A8                  437 	.fcb	0b10101000
+   E37A C8                  438 	.fcb	0b11001000
+   E37B 88                  439 	.fcb	0b10001000
+   E37C 70                  440 	.fcb	0b01110000
+   E37D 00                  441 	.fcb	0b00000000
+                            442 ; char 49
+   E37E 20                  443 	.fcb	0b00100000
+   E37F 60                  444 	.fcb	0b01100000
+   E380 20                  445 	.fcb	0b00100000
+   E381 20                  446 	.fcb	0b00100000
+   E382 20                  447 	.fcb	0b00100000
+   E383 20                  448 	.fcb	0b00100000
+   E384 70                  449 	.fcb	0b01110000
+   E385 00                  450 	.fcb	0b00000000
+                            451 ; char 50
+   E386 70                  452 	.fcb	0b01110000
+   E387 88                  453 	.fcb	0b10001000
+   E388 08                  454 	.fcb	0b00001000
+   E389 30                  455 	.fcb	0b00110000
+   E38A 40                  456 	.fcb	0b01000000
+   E38B 80                  457 	.fcb	0b10000000
+   E38C F8                  458 	.fcb	0b11111000
+   E38D 00                  459 	.fcb	0b00000000
+                            460 ; char 51
+   E38E F8                  461 	.fcb	0b11111000
+   E38F 08                  462 	.fcb	0b00001000
+   E390 10                  463 	.fcb	0b00010000
+   E391 30                  464 	.fcb	0b00110000
+   E392 08                  465 	.fcb	0b00001000
+   E393 88                  466 	.fcb	0b10001000
+   E394 70                  467 	.fcb	0b01110000
+   E395 00                  468 	.fcb	0b00000000
+                            469 ; char 52
+   E396 10                  470 	.fcb	0b00010000
+   E397 30                  471 	.fcb	0b00110000
+   E398 50                  472 	.fcb	0b01010000
+   E399 90                  473 	.fcb	0b10010000
+   E39A F8                  474 	.fcb	0b11111000
+   E39B 10                  475 	.fcb	0b00010000
+   E39C 10                  476 	.fcb	0b00010000
+   E39D 00                  477 	.fcb	0b00000000
+                            478 ; char 53
+   E39E F8                  479 	.fcb	0b11111000
+   E39F 80                  480 	.fcb	0b10000000
+   E3A0 F0                  481 	.fcb	0b11110000
+   E3A1 08                  482 	.fcb	0b00001000
+   E3A2 08                  483 	.fcb	0b00001000
+   E3A3 88                  484 	.fcb	0b10001000
+   E3A4 70                  485 	.fcb	0b01110000
+   E3A5 00                  486 	.fcb	0b00000000
+                            487 ; char 54
+   E3A6 38                  488 	.fcb	0b00111000
+   E3A7 40                  489 	.fcb	0b01000000
+   E3A8 80                  490 	.fcb	0b10000000
+   E3A9 F0                  491 	.fcb	0b11110000
+   E3AA 88                  492 	.fcb	0b10001000
+   E3AB 88                  493 	.fcb	0b10001000
+   E3AC 70                  494 	.fcb	0b01110000
+   E3AD 00                  495 	.fcb	0b00000000
+                            496 ; char 55
+   E3AE F8                  497 	.fcb	0b11111000
+   E3AF 08                  498 	.fcb	0b00001000
+   E3B0 10                  499 	.fcb	0b00010000
+   E3B1 20                  500 	.fcb	0b00100000
+   E3B2 40                  501 	.fcb	0b01000000
+   E3B3 40                  502 	.fcb	0b01000000
+   E3B4 40                  503 	.fcb	0b01000000
+   E3B5 00                  504 	.fcb	0b00000000
+                            505 ; char 56
+   E3B6 70                  506 	.fcb	0b01110000
+   E3B7 88                  507 	.fcb	0b10001000
+   E3B8 88                  508 	.fcb	0b10001000
+   E3B9 70                  509 	.fcb	0b01110000
+   E3BA 88                  510 	.fcb	0b10001000
+   E3BB 88                  511 	.fcb	0b10001000
+   E3BC 70                  512 	.fcb	0b01110000
+   E3BD 00                  513 	.fcb	0b00000000
+                            514 ; char 57
+   E3BE 70                  515 	.fcb	0b01110000
+   E3BF 88                  516 	.fcb	0b10001000
+   E3C0 88                  517 	.fcb	0b10001000
+   E3C1 78                  518 	.fcb	0b01111000
+   E3C2 08                  519 	.fcb	0b00001000
+   E3C3 10                  520 	.fcb	0b00010000
+   E3C4 E0                  521 	.fcb	0b11100000
+   E3C5 00                  522 	.fcb	0b00000000
+                            523 ; char 58
+   E3C6 00                  524 	.fcb	0b00000000
+   E3C7 00                  525 	.fcb	0b00000000
+   E3C8 20                  526 	.fcb	0b00100000
+   E3C9 00                  527 	.fcb	0b00000000
+   E3CA 20                  528 	.fcb	0b00100000
+   E3CB 00                  529 	.fcb	0b00000000
+   E3CC 00                  530 	.fcb	0b00000000
+   E3CD 00                  531 	.fcb	0b00000000
+                            532 ; char 59
+   E3CE 00                  533 	.fcb	0b00000000
+   E3CF 00                  534 	.fcb	0b00000000
+   E3D0 20                  535 	.fcb	0b00100000
+   E3D1 00                  536 	.fcb	0b00000000
+   E3D2 20                  537 	.fcb	0b00100000
+   E3D3 20                  538 	.fcb	0b00100000
+   E3D4 40                  539 	.fcb	0b01000000
+   E3D5 00                  540 	.fcb	0b00000000
+                            541 ; char 60
+   E3D6 08                  542 	.fcb	0b00001000
+   E3D7 10                  543 	.fcb	0b00010000
+   E3D8 20                  544 	.fcb	0b00100000
+   E3D9 40                  545 	.fcb	0b01000000
+   E3DA 20                  546 	.fcb	0b00100000
+   E3DB 10                  547 	.fcb	0b00010000
+   E3DC 08                  548 	.fcb	0b00001000
+   E3DD 00                  549 	.fcb	0b00000000
+                            550 ; char 61
+   E3DE 00                  551 	.fcb	0b00000000
+   E3DF 00                  552 	.fcb	0b00000000
+   E3E0 F8                  553 	.fcb	0b11111000
+   E3E1 00                  554 	.fcb	0b00000000
+   E3E2 F8                  555 	.fcb	0b11111000
+   E3E3 00                  556 	.fcb	0b00000000
+   E3E4 00                  557 	.fcb	0b00000000
+   E3E5 00                  558 	.fcb	0b00000000
+                            559 ; char 62
+   E3E6 80                  560 	.fcb	0b10000000
+   E3E7 40                  561 	.fcb	0b01000000
+   E3E8 20                  562 	.fcb	0b00100000
+   E3E9 10                  563 	.fcb	0b00010000
+   E3EA 20                  564 	.fcb	0b00100000
+   E3EB 40                  565 	.fcb	0b01000000
+   E3EC 80                  566 	.fcb	0b10000000
+   E3ED 00                  567 	.fcb	0b00000000
+                            568 ; char 63
+   E3EE 70                  569 	.fcb	0b01110000
+   E3EF 88                  570 	.fcb	0b10001000
+   E3F0 08                  571 	.fcb	0b00001000
+   E3F1 10                  572 	.fcb	0b00010000
+   E3F2 20                  573 	.fcb	0b00100000
+   E3F3 00                  574 	.fcb	0b00000000
+   E3F4 20                  575 	.fcb	0b00100000
+   E3F5 00                  576 	.fcb	0b00000000
+                            577 ; char 64
+   E3F6 70                  578 	.fcb	0b01110000
+   E3F7 88                  579 	.fcb	0b10001000
+   E3F8 A8                  580 	.fcb	0b10101000
+   E3F9 B8                  581 	.fcb	0b10111000
+   E3FA B0                  582 	.fcb	0b10110000
+   E3FB 80                  583 	.fcb	0b10000000
+   E3FC 78                  584 	.fcb	0b01111000
+   E3FD 00                  585 	.fcb	0b00000000
+                            586 ; char 65
+   E3FE 70                  587 	.fcb	0b01110000
+   E3FF 88                  588 	.fcb	0b10001000
+   E400 88                  589 	.fcb	0b10001000
+   E401 F8                  590 	.fcb	0b11111000
+   E402 88                  591 	.fcb	0b10001000
+   E403 88                  592 	.fcb	0b10001000
+   E404 88                  593 	.fcb	0b10001000
+   E405 00                  594 	.fcb	0b00000000
+                            595 ; char 66
+   E406 F0                  596 	.fcb	0b11110000
+   E407 88                  597 	.fcb	0b10001000
+   E408 88                  598 	.fcb	0b10001000
+   E409 F0                  599 	.fcb	0b11110000
+   E40A 88                  600 	.fcb	0b10001000
+   E40B 88                  601 	.fcb	0b10001000
+   E40C F0                  602 	.fcb	0b11110000
+   E40D 00                  603 	.fcb	0b00000000
+                            604 ; char 67
+   E40E 70                  605 	.fcb	0b01110000
+   E40F 88                  606 	.fcb	0b10001000
+   E410 80                  607 	.fcb	0b10000000
+   E411 80                  608 	.fcb	0b10000000
+   E412 80                  609 	.fcb	0b10000000
+   E413 88                  610 	.fcb	0b10001000
+   E414 70                  611 	.fcb	0b01110000
+   E415 00                  612 	.fcb	0b00000000
+                            613 ; char 68
+   E416 E0                  614 	.fcb	0b11100000
+   E417 90                  615 	.fcb	0b10010000
+   E418 88                  616 	.fcb	0b10001000
+   E419 88                  617 	.fcb	0b10001000
+   E41A 88                  618 	.fcb	0b10001000
+   E41B 90                  619 	.fcb	0b10010000
+   E41C E0                  620 	.fcb	0b11100000
+   E41D 00                  621 	.fcb	0b00000000
+                            622 ; char 69
+   E41E F8                  623 	.fcb	0b11111000
+   E41F 80                  624 	.fcb	0b10000000
+   E420 80                  625 	.fcb	0b10000000
+   E421 E0                  626 	.fcb	0b11100000
+   E422 80                  627 	.fcb	0b10000000
+   E423 80                  628 	.fcb	0b10000000
+   E424 F8                  629 	.fcb	0b11111000
+   E425 00                  630 	.fcb	0b00000000
+                            631 ; char 70
+   E426 F8                  632 	.fcb	0b11111000
+   E427 80                  633 	.fcb	0b10000000
+   E428 80                  634 	.fcb	0b10000000
+   E429 E0                  635 	.fcb	0b11100000
+   E42A 80                  636 	.fcb	0b10000000
+   E42B 80                  637 	.fcb	0b10000000
+   E42C 80                  638 	.fcb	0b10000000
+   E42D 00                  639 	.fcb	0b00000000
+                            640 ; char 71
+   E42E 70                  641 	.fcb	0b01110000
+   E42F 88                  642 	.fcb	0b10001000
+   E430 80                  643 	.fcb	0b10000000
+   E431 B8                  644 	.fcb	0b10111000
+   E432 88                  645 	.fcb	0b10001000
+   E433 88                  646 	.fcb	0b10001000
+   E434 78                  647 	.fcb	0b01111000
+   E435 00                  648 	.fcb	0b00000000
+                            649 ; char 72
+   E436 88                  650 	.fcb	0b10001000
+   E437 88                  651 	.fcb	0b10001000
+   E438 88                  652 	.fcb	0b10001000
+   E439 F8                  653 	.fcb	0b11111000
+   E43A 88                  654 	.fcb	0b10001000
+   E43B 88                  655 	.fcb	0b10001000
+   E43C 88                  656 	.fcb	0b10001000
+   E43D 00                  657 	.fcb	0b00000000
+                            658 ; char 73
+   E43E 70                  659 	.fcb	0b01110000
+   E43F 20                  660 	.fcb	0b00100000
+   E440 20                  661 	.fcb	0b00100000
+   E441 20                  662 	.fcb	0b00100000
+   E442 20                  663 	.fcb	0b00100000
+   E443 20                  664 	.fcb	0b00100000
+   E444 70                  665 	.fcb	0b01110000
+   E445 00                  666 	.fcb	0b00000000
+                            667 ; char 74
+   E446 08                  668 	.fcb	0b00001000
+   E447 08                  669 	.fcb	0b00001000
+   E448 08                  670 	.fcb	0b00001000
+   E449 08                  671 	.fcb	0b00001000
+   E44A 08                  672 	.fcb	0b00001000
+   E44B 88                  673 	.fcb	0b10001000
+   E44C 70                  674 	.fcb	0b01110000
+   E44D 00                  675 	.fcb	0b00000000
+                            676 ; char 75
+   E44E 88                  677 	.fcb	0b10001000
+   E44F 90                  678 	.fcb	0b10010000
+   E450 A0                  679 	.fcb	0b10100000
+   E451 C0                  680 	.fcb	0b11000000
+   E452 A0                  681 	.fcb	0b10100000
+   E453 90                  682 	.fcb	0b10010000
+   E454 88                  683 	.fcb	0b10001000
+   E455 00                  684 	.fcb	0b00000000
+                            685 ; char 76
+   E456 80                  686 	.fcb	0b10000000
+   E457 80                  687 	.fcb	0b10000000
+   E458 80                  688 	.fcb	0b10000000
+   E459 80                  689 	.fcb	0b10000000
+   E45A 80                  690 	.fcb	0b10000000
+   E45B 80                  691 	.fcb	0b10000000
+   E45C F8                  692 	.fcb	0b11111000
+   E45D 00                  693 	.fcb	0b00000000
+                            694 ; char 77
+   E45E 88                  695 	.fcb	0b10001000
+   E45F D8                  696 	.fcb	0b11011000
+   E460 A8                  697 	.fcb	0b10101000
+   E461 A8                  698 	.fcb	0b10101000
+   E462 88                  699 	.fcb	0b10001000
+   E463 88                  700 	.fcb	0b10001000
+   E464 88                  701 	.fcb	0b10001000
+   E465 00                  702 	.fcb	0b00000000
+                            703 ; char 78
+   E466 88                  704 	.fcb	0b10001000
+   E467 88                  705 	.fcb	0b10001000
+   E468 C8                  706 	.fcb	0b11001000
+   E469 A8                  707 	.fcb	0b10101000
+   E46A 98                  708 	.fcb	0b10011000
+   E46B 88                  709 	.fcb	0b10001000
+   E46C 88                  710 	.fcb	0b10001000
+   E46D 00                  711 	.fcb	0b00000000
+                            712 ; char 79
+   E46E 70                  713 	.fcb	0b01110000
+   E46F 88                  714 	.fcb	0b10001000
+   E470 88                  715 	.fcb	0b10001000
+   E471 88                  716 	.fcb	0b10001000
+   E472 88                  717 	.fcb	0b10001000
+   E473 88                  718 	.fcb	0b10001000
+   E474 70                  719 	.fcb	0b01110000
+   E475 00                  720 	.fcb	0b00000000
+                            721 ; char 80
+   E476 F0                  722 	.fcb	0b11110000
+   E477 88                  723 	.fcb	0b10001000
+   E478 88                  724 	.fcb	0b10001000
+   E479 F0                  725 	.fcb	0b11110000
+   E47A 80                  726 	.fcb	0b10000000
+   E47B 80                  727 	.fcb	0b10000000
+   E47C 80                  728 	.fcb	0b10000000
+   E47D 00                  729 	.fcb	0b00000000
+                            730 ; char 81
+   E47E 70                  731 	.fcb	0b01110000
+   E47F 88                  732 	.fcb	0b10001000
+   E480 88                  733 	.fcb	0b10001000
+   E481 88                  734 	.fcb	0b10001000
+   E482 A8                  735 	.fcb	0b10101000
+   E483 90                  736 	.fcb	0b10010000
+   E484 68                  737 	.fcb	0b01101000
+   E485 00                  738 	.fcb	0b00000000
+                            739 ; char 82
+   E486 F0                  740 	.fcb	0b11110000
+   E487 88                  741 	.fcb	0b10001000
+   E488 88                  742 	.fcb	0b10001000
+   E489 F0                  743 	.fcb	0b11110000
+   E48A A0                  744 	.fcb	0b10100000
+   E48B 90                  745 	.fcb	0b10010000
+   E48C 88                  746 	.fcb	0b10001000
+   E48D 00                  747 	.fcb	0b00000000
+                            748 ; char 83
+   E48E 78                  749 	.fcb	0b01111000
+   E48F 80                  750 	.fcb	0b10000000
+   E490 80                  751 	.fcb	0b10000000
+   E491 70                  752 	.fcb	0b01110000
+   E492 08                  753 	.fcb	0b00001000
+   E493 08                  754 	.fcb	0b00001000
+   E494 F0                  755 	.fcb	0b11110000
+   E495 00                  756 	.fcb	0b00000000
+                            757 ; char 84
+   E496 F8                  758 	.fcb	0b11111000
+   E497 20                  759 	.fcb	0b00100000
+   E498 20                  760 	.fcb	0b00100000
+   E499 20                  761 	.fcb	0b00100000
+   E49A 20                  762 	.fcb	0b00100000
+   E49B 20                  763 	.fcb	0b00100000
+   E49C 20                  764 	.fcb	0b00100000
+   E49D 00                  765 	.fcb	0b00000000
+                            766 ; char 85
+   E49E 88                  767 	.fcb	0b10001000
+   E49F 88                  768 	.fcb	0b10001000
+   E4A0 88                  769 	.fcb	0b10001000
+   E4A1 88                  770 	.fcb	0b10001000
+   E4A2 88                  771 	.fcb	0b10001000
+   E4A3 88                  772 	.fcb	0b10001000
+   E4A4 70                  773 	.fcb	0b01110000
+   E4A5 00                  774 	.fcb	0b00000000
+                            775 ; char 86
+   E4A6 88                  776 	.fcb	0b10001000
+   E4A7 88                  777 	.fcb	0b10001000
+   E4A8 88                  778 	.fcb	0b10001000
+   E4A9 88                  779 	.fcb	0b10001000
+   E4AA 88                  780 	.fcb	0b10001000
+   E4AB 50                  781 	.fcb	0b01010000
+   E4AC 20                  782 	.fcb	0b00100000
+   E4AD 00                  783 	.fcb	0b00000000
+                            784 ; char 87
+   E4AE 88                  785 	.fcb	0b10001000
+   E4AF 88                  786 	.fcb	0b10001000
+   E4B0 88                  787 	.fcb	0b10001000
+   E4B1 A8                  788 	.fcb	0b10101000
+   E4B2 A8                  789 	.fcb	0b10101000
+   E4B3 D8                  790 	.fcb	0b11011000
+   E4B4 88                  791 	.fcb	0b10001000
+   E4B5 00                  792 	.fcb	0b00000000
+                            793 ; char 88
+   E4B6 88                  794 	.fcb	0b10001000
+   E4B7 88                  795 	.fcb	0b10001000
+   E4B8 50                  796 	.fcb	0b01010000
+   E4B9 20                  797 	.fcb	0b00100000
+   E4BA 50                  798 	.fcb	0b01010000
+   E4BB 88                  799 	.fcb	0b10001000
+   E4BC 88                  800 	.fcb	0b10001000
+   E4BD 00                  801 	.fcb	0b00000000
+                            802 ; char 89
+   E4BE 88                  803 	.fcb	0b10001000
+   E4BF 88                  804 	.fcb	0b10001000
+   E4C0 88                  805 	.fcb	0b10001000
+   E4C1 50                  806 	.fcb	0b01010000
+   E4C2 20                  807 	.fcb	0b00100000
+   E4C3 20                  808 	.fcb	0b00100000
+   E4C4 20                  809 	.fcb	0b00100000
+   E4C5 00                  810 	.fcb	0b00000000
+                            811 ; char 90
+   E4C6 F8                  812 	.fcb	0b11111000
+   E4C7 08                  813 	.fcb	0b00001000
+   E4C8 10                  814 	.fcb	0b00010000
+   E4C9 20                  815 	.fcb	0b00100000
+   E4CA 40                  816 	.fcb	0b01000000
+   E4CB 80                  817 	.fcb	0b10000000
+   E4CC F8                  818 	.fcb	0b11111000
+   E4CD 00                  819 	.fcb	0b00000000
+                            820 ; char 91
+   E4CE 70                  821 	.fcb	0b01110000
+   E4CF 40                  822 	.fcb	0b01000000
+   E4D0 40                  823 	.fcb	0b01000000
+   E4D1 40                  824 	.fcb	0b01000000
+   E4D2 40                  825 	.fcb	0b01000000
+   E4D3 40                  826 	.fcb	0b01000000
+   E4D4 70                  827 	.fcb	0b01110000
+   E4D5 00                  828 	.fcb	0b00000000
+                            829 ; char 92
+   E4D6 00                  830 	.fcb	0b00000000
+   E4D7 80                  831 	.fcb	0b10000000
+   E4D8 40                  832 	.fcb	0b01000000
+   E4D9 20                  833 	.fcb	0b00100000
+   E4DA 10                  834 	.fcb	0b00010000
+   E4DB 08                  835 	.fcb	0b00001000
+   E4DC 00                  836 	.fcb	0b00000000
+   E4DD 00                  837 	.fcb	0b00000000
+                            838 ; char 93
+   E4DE 70                  839 	.fcb	0b01110000
+   E4DF 10                  840 	.fcb	0b00010000
+   E4E0 10                  841 	.fcb	0b00010000
+   E4E1 10                  842 	.fcb	0b00010000
+   E4E2 10                  843 	.fcb	0b00010000
+   E4E3 10                  844 	.fcb	0b00010000
+   E4E4 70                  845 	.fcb	0b01110000
+   E4E5 00                  846 	.fcb	0b00000000
+                            847 ; char 94
+   E4E6 20                  848 	.fcb	0b00100000
+   E4E7 50                  849 	.fcb	0b01010000
+   E4E8 88                  850 	.fcb	0b10001000
+   E4E9 00                  851 	.fcb	0b00000000
+   E4EA 00                  852 	.fcb	0b00000000
+   E4EB 00                  853 	.fcb	0b00000000
+   E4EC 00                  854 	.fcb	0b00000000
+   E4ED 00                  855 	.fcb	0b00000000
+                            856 ; char 95
+   E4EE 00                  857 	.fcb	0b00000000
+   E4EF 00                  858 	.fcb	0b00000000
+   E4F0 00                  859 	.fcb	0b00000000
+   E4F1 00                  860 	.fcb	0b00000000
+   E4F2 00                  861 	.fcb	0b00000000
+   E4F3 00                  862 	.fcb	0b00000000
+   E4F4 F8                  863 	.fcb	0b11111000
+   E4F5 00                  864 	.fcb	0b00000000
+                            865 ; char 96
+   E4F6 40                  866 	.fcb	0b01000000
+   E4F7 20                  867 	.fcb	0b00100000
+   E4F8 10                  868 	.fcb	0b00010000
+   E4F9 00                  869 	.fcb	0b00000000
+   E4FA 00                  870 	.fcb	0b00000000
+   E4FB 00                  871 	.fcb	0b00000000
+   E4FC 00                  872 	.fcb	0b00000000
+   E4FD 00                  873 	.fcb	0b00000000
+                            874 ; char 97
+   E4FE 00                  875 	.fcb	0b00000000
+   E4FF 00                  876 	.fcb	0b00000000
+   E500 70                  877 	.fcb	0b01110000
+   E501 08                  878 	.fcb	0b00001000
+   E502 78                  879 	.fcb	0b01111000
+   E503 88                  880 	.fcb	0b10001000
+   E504 78                  881 	.fcb	0b01111000
+   E505 00                  882 	.fcb	0b00000000
+                            883 ; char 98
+   E506 80                  884 	.fcb	0b10000000
+   E507 80                  885 	.fcb	0b10000000
+   E508 F0                  886 	.fcb	0b11110000
+   E509 88                  887 	.fcb	0b10001000
+   E50A 88                  888 	.fcb	0b10001000
+   E50B 88                  889 	.fcb	0b10001000
+   E50C F0                  890 	.fcb	0b11110000
+   E50D 00                  891 	.fcb	0b00000000
+                            892 ; char 99
+   E50E 00                  893 	.fcb	0b00000000
+   E50F 00                  894 	.fcb	0b00000000
+   E510 78                  895 	.fcb	0b01111000
+   E511 80                  896 	.fcb	0b10000000
+   E512 80                  897 	.fcb	0b10000000
+   E513 80                  898 	.fcb	0b10000000
+   E514 78                  899 	.fcb	0b01111000
+   E515 00                  900 	.fcb	0b00000000
+                            901 ; char 100
+   E516 08                  902 	.fcb	0b00001000
+   E517 08                  903 	.fcb	0b00001000
+   E518 78                  904 	.fcb	0b01111000
+   E519 88                  905 	.fcb	0b10001000
+   E51A 88                  906 	.fcb	0b10001000
+   E51B 88                  907 	.fcb	0b10001000
+   E51C 78                  908 	.fcb	0b01111000
+   E51D 00                  909 	.fcb	0b00000000
+                            910 ; char 101
+   E51E 00                  911 	.fcb	0b00000000
+   E51F 00                  912 	.fcb	0b00000000
+   E520 70                  913 	.fcb	0b01110000
+   E521 88                  914 	.fcb	0b10001000
+   E522 F8                  915 	.fcb	0b11111000
+   E523 80                  916 	.fcb	0b10000000
+   E524 78                  917 	.fcb	0b01111000
+   E525 00                  918 	.fcb	0b00000000
+                            919 ; char 102
+   E526 30                  920 	.fcb	0b00110000
+   E527 48                  921 	.fcb	0b01001000
+   E528 40                  922 	.fcb	0b01000000
+   E529 F0                  923 	.fcb	0b11110000
+   E52A 40                  924 	.fcb	0b01000000
+   E52B 40                  925 	.fcb	0b01000000
+   E52C 40                  926 	.fcb	0b01000000
+   E52D 00                  927 	.fcb	0b00000000
+                            928 ; char 103
+   E52E 00                  929 	.fcb	0b00000000
+   E52F 00                  930 	.fcb	0b00000000
+   E530 78                  931 	.fcb	0b01111000
+   E531 88                  932 	.fcb	0b10001000
+   E532 88                  933 	.fcb	0b10001000
+   E533 78                  934 	.fcb	0b01111000
+   E534 08                  935 	.fcb	0b00001000
+   E535 F0                  936 	.fcb	0b11110000
+                            937 ; char 104
+   E536 80                  938 	.fcb	0b10000000
+   E537 80                  939 	.fcb	0b10000000
+   E538 F0                  940 	.fcb	0b11110000
+   E539 88                  941 	.fcb	0b10001000
+   E53A 88                  942 	.fcb	0b10001000
+   E53B 88                  943 	.fcb	0b10001000
+   E53C 88                  944 	.fcb	0b10001000
+   E53D 00                  945 	.fcb	0b00000000
+                            946 ; char 105
+   E53E 00                  947 	.fcb	0b00000000
+   E53F 20                  948 	.fcb	0b00100000
+   E540 00                  949 	.fcb	0b00000000
+   E541 60                  950 	.fcb	0b01100000
+   E542 20                  951 	.fcb	0b00100000
+   E543 20                  952 	.fcb	0b00100000
+   E544 70                  953 	.fcb	0b01110000
+   E545 00                  954 	.fcb	0b00000000
+                            955 ; char 106
+   E546 00                  956 	.fcb	0b00000000
+   E547 10                  957 	.fcb	0b00010000
+   E548 00                  958 	.fcb	0b00000000
+   E549 30                  959 	.fcb	0b00110000
+   E54A 10                  960 	.fcb	0b00010000
+   E54B 10                  961 	.fcb	0b00010000
+   E54C 90                  962 	.fcb	0b10010000
+   E54D 60                  963 	.fcb	0b01100000
+                            964 ; char 107
+   E54E 80                  965 	.fcb	0b10000000
+   E54F 80                  966 	.fcb	0b10000000
+   E550 90                  967 	.fcb	0b10010000
+   E551 A0                  968 	.fcb	0b10100000
+   E552 C0                  969 	.fcb	0b11000000
+   E553 A0                  970 	.fcb	0b10100000
+   E554 90                  971 	.fcb	0b10010000
+   E555 00                  972 	.fcb	0b00000000
+                            973 ; char 108
+   E556 60                  974 	.fcb	0b01100000
+   E557 20                  975 	.fcb	0b00100000
+   E558 20                  976 	.fcb	0b00100000
+   E559 20                  977 	.fcb	0b00100000
+   E55A 20                  978 	.fcb	0b00100000
+   E55B 20                  979 	.fcb	0b00100000
+   E55C 70                  980 	.fcb	0b01110000
+   E55D 00                  981 	.fcb	0b00000000
+                            982 ; char 109
+   E55E 00                  983 	.fcb	0b00000000
+   E55F 00                  984 	.fcb	0b00000000
+   E560 D0                  985 	.fcb	0b11010000
+   E561 A8                  986 	.fcb	0b10101000
+   E562 A8                  987 	.fcb	0b10101000
+   E563 A8                  988 	.fcb	0b10101000
+   E564 A8                  989 	.fcb	0b10101000
+   E565 00                  990 	.fcb	0b00000000
+                            991 ; char 110
+   E566 00                  992 	.fcb	0b00000000
+   E567 00                  993 	.fcb	0b00000000
+   E568 F0                  994 	.fcb	0b11110000
+   E569 88                  995 	.fcb	0b10001000
+   E56A 88                  996 	.fcb	0b10001000
+   E56B 88                  997 	.fcb	0b10001000
+   E56C 88                  998 	.fcb	0b10001000
+   E56D 00                  999 	.fcb	0b00000000
+                           1000 ; char 111
+   E56E 00                 1001 	.fcb	0b00000000
+   E56F 00                 1002 	.fcb	0b00000000
+   E570 70                 1003 	.fcb	0b01110000
+   E571 88                 1004 	.fcb	0b10001000
+   E572 88                 1005 	.fcb	0b10001000
+   E573 88                 1006 	.fcb	0b10001000
+   E574 70                 1007 	.fcb	0b01110000
+   E575 00                 1008 	.fcb	0b00000000
+                           1009 ; char 112
+   E576 00                 1010 	.fcb	0b00000000
+   E577 00                 1011 	.fcb	0b00000000
+   E578 F0                 1012 	.fcb	0b11110000
+   E579 88                 1013 	.fcb	0b10001000
+   E57A 88                 1014 	.fcb	0b10001000
+   E57B F0                 1015 	.fcb	0b11110000
+   E57C 80                 1016 	.fcb	0b10000000
+   E57D 80                 1017 	.fcb	0b10000000
+                           1018 ; char 113
+   E57E 00                 1019 	.fcb	0b00000000
+   E57F 00                 1020 	.fcb	0b00000000
+   E580 78                 1021 	.fcb	0b01111000
+   E581 88                 1022 	.fcb	0b10001000
+   E582 88                 1023 	.fcb	0b10001000
+   E583 78                 1024 	.fcb	0b01111000
+   E584 08                 1025 	.fcb	0b00001000
+   E585 08                 1026 	.fcb	0b00001000
+                           1027 ; char 114
+   E586 00                 1028 	.fcb	0b00000000
+   E587 00                 1029 	.fcb	0b00000000
+   E588 B8                 1030 	.fcb	0b10111000
+   E589 C0                 1031 	.fcb	0b11000000
+   E58A 80                 1032 	.fcb	0b10000000
+   E58B 80                 1033 	.fcb	0b10000000
+   E58C 80                 1034 	.fcb	0b10000000
+   E58D 00                 1035 	.fcb	0b00000000
+                           1036 ; char 115
+   E58E 00                 1037 	.fcb	0b00000000
+   E58F 00                 1038 	.fcb	0b00000000
+   E590 78                 1039 	.fcb	0b01111000
+   E591 80                 1040 	.fcb	0b10000000
+   E592 70                 1041 	.fcb	0b01110000
+   E593 08                 1042 	.fcb	0b00001000
+   E594 F0                 1043 	.fcb	0b11110000
+   E595 00                 1044 	.fcb	0b00000000
+                           1045 ; char 116
+   E596 40                 1046 	.fcb	0b01000000
+   E597 40                 1047 	.fcb	0b01000000
+   E598 F0                 1048 	.fcb	0b11110000
+   E599 40                 1049 	.fcb	0b01000000
+   E59A 40                 1050 	.fcb	0b01000000
+   E59B 48                 1051 	.fcb	0b01001000
+   E59C 30                 1052 	.fcb	0b00110000
+   E59D 00                 1053 	.fcb	0b00000000
+                           1054 ; char 117
+   E59E 00                 1055 	.fcb	0b00000000
+   E59F 00                 1056 	.fcb	0b00000000
+   E5A0 88                 1057 	.fcb	0b10001000
+   E5A1 88                 1058 	.fcb	0b10001000
+   E5A2 88                 1059 	.fcb	0b10001000
+   E5A3 98                 1060 	.fcb	0b10011000
+   E5A4 68                 1061 	.fcb	0b01101000
+   E5A5 00                 1062 	.fcb	0b00000000
+                           1063 ; char 118
+   E5A6 00                 1064 	.fcb	0b00000000
+   E5A7 00                 1065 	.fcb	0b00000000
+   E5A8 88                 1066 	.fcb	0b10001000
+   E5A9 88                 1067 	.fcb	0b10001000
+   E5AA 88                 1068 	.fcb	0b10001000
+   E5AB 50                 1069 	.fcb	0b01010000
+   E5AC 20                 1070 	.fcb	0b00100000
+   E5AD 00                 1071 	.fcb	0b00000000
+                           1072 ; char 119
+   E5AE 00                 1073 	.fcb	0b00000000
+   E5AF 00                 1074 	.fcb	0b00000000
+   E5B0 88                 1075 	.fcb	0b10001000
+   E5B1 88                 1076 	.fcb	0b10001000
+   E5B2 A8                 1077 	.fcb	0b10101000
+   E5B3 A8                 1078 	.fcb	0b10101000
+   E5B4 50                 1079 	.fcb	0b01010000
+   E5B5 00                 1080 	.fcb	0b00000000
+                           1081 ; char 120
+   E5B6 00                 1082 	.fcb	0b00000000
+   E5B7 00                 1083 	.fcb	0b00000000
+   E5B8 88                 1084 	.fcb	0b10001000
+   E5B9 50                 1085 	.fcb	0b01010000
+   E5BA 20                 1086 	.fcb	0b00100000
+   E5BB 50                 1087 	.fcb	0b01010000
+   E5BC 88                 1088 	.fcb	0b10001000
+   E5BD 00                 1089 	.fcb	0b00000000
+                           1090 ; char 121
+   E5BE 00                 1091 	.fcb	0b00000000
+   E5BF 00                 1092 	.fcb	0b00000000
+   E5C0 88                 1093 	.fcb	0b10001000
+   E5C1 88                 1094 	.fcb	0b10001000
+   E5C2 88                 1095 	.fcb	0b10001000
+   E5C3 78                 1096 	.fcb	0b01111000
+   E5C4 08                 1097 	.fcb	0b00001000
+   E5C5 F0                 1098 	.fcb	0b11110000
+                           1099 ; char 122
+   E5C6 00                 1100 	.fcb	0b00000000
+   E5C7 00                 1101 	.fcb	0b00000000
+   E5C8 F8                 1102 	.fcb	0b11111000
+   E5C9 10                 1103 	.fcb	0b00010000
+   E5CA 20                 1104 	.fcb	0b00100000
+   E5CB 40                 1105 	.fcb	0b01000000
+   E5CC F8                 1106 	.fcb	0b11111000
+   E5CD 00                 1107 	.fcb	0b00000000
+                           1108 ; char 123
+   E5CE 18                 1109 	.fcb	0b00011000
+   E5CF 20                 1110 	.fcb	0b00100000
+   E5D0 20                 1111 	.fcb	0b00100000
+   E5D1 40                 1112 	.fcb	0b01000000
+   E5D2 20                 1113 	.fcb	0b00100000
+   E5D3 20                 1114 	.fcb	0b00100000
+   E5D4 18                 1115 	.fcb	0b00011000
+   E5D5 00                 1116 	.fcb	0b00000000
+                           1117 ; char 124
+   E5D6 20                 1118 	.fcb	0b00100000
+   E5D7 20                 1119 	.fcb	0b00100000
+   E5D8 20                 1120 	.fcb	0b00100000
+   E5D9 20                 1121 	.fcb	0b00100000
+   E5DA 20                 1122 	.fcb	0b00100000
+   E5DB 20                 1123 	.fcb	0b00100000
+   E5DC 20                 1124 	.fcb	0b00100000
+   E5DD 00                 1125 	.fcb	0b00000000
+                           1126 ; char 125
+   E5DE C0                 1127 	.fcb	0b11000000
+   E5DF 20                 1128 	.fcb	0b00100000
+   E5E0 20                 1129 	.fcb	0b00100000
+   E5E1 10                 1130 	.fcb	0b00010000
+   E5E2 20                 1131 	.fcb	0b00100000
+   E5E3 20                 1132 	.fcb	0b00100000
+   E5E4 C0                 1133 	.fcb	0b11000000
+   E5E5 00                 1134 	.fcb	0b00000000
+                           1135 ; char 126
+   E5E6 00                 1136 	.fcb	0b00000000
+   E5E7 00                 1137 	.fcb	0b00000000
+   E5E8 40                 1138 	.fcb	0b01000000
+   E5E9 A8                 1139 	.fcb	0b10101000
+   E5EA 10                 1140 	.fcb	0b00010000
+   E5EB 00                 1141 	.fcb	0b00000000
+   E5EC 00                 1142 	.fcb	0b00000000
+   E5ED 00                 1143 	.fcb	0b00000000
+                           1144 ; char 127
+   E5EE F8                 1145 	.fcb	0b11111000
+   E5EF F8                 1146 	.fcb	0b11111000
+   E5F0 F8                 1147 	.fcb	0b11111000
+   E5F1 F8                 1148 	.fcb	0b11111000
+   E5F2 F8                 1149 	.fcb	0b11111000
+   E5F3 F8                 1150 	.fcb	0b11111000
+   E5F4 F8                 1151 	.fcb	0b11111000
+   E5F5 00                 1152 	.fcb	0b00000000
+                     E5F6   201 TEXTFONT_END	.equ	.
+                             92 		.include "kbd6522.asm"
+                              1 ; vim:noet:sw=8:ts=8:ai:syn=as6809
+                              2 ; Matt Sarnoff (msarnoff.org/6809) - January 24, 2011
+                              3 ;
+                              4 ;************ PS/2 keyboard routines ************
+                              5 ;Uses the 6522 Versatile Interface Adapter in the following configuration:
+                              6 ;CA1: clock
+                              7 ;PB7: data
+                              8 ;High-to-low transitions on the clock line trigger fast (FIRQ) interrupts.
+                              9 ;Compatible with the I2C routines, but I2C *must* be initialized first.
+                             10 ;
+                             11 ;Sending data to the keyboard is not currently supported.
+                             12 ;
+                             13 ;Implements a very rudimentary circular scancode buffer with no overflow
+                             14 ;checking. If the buffer is full, new scancodes overwrite old ones. (but memory
+                             15 ;outside the scancode buffer is not affected.)
+                             16 ;If you're checking for keypresses at 60 Hz you should never encounter a
+                             17 ;situation where the buffer overflows.
+                             18 
+                             19 ;;; initializes the keyboard system
+                             20 ;;; arguments:	none
+                             21 ;;; returns:	none
+                             22 ;;; destroys:	A,B,X
+                             23 ;;;
+                             24 ;;; Turns on interrupt generation. The F bit in CC must be clear to receive
+                             25 ;;; keyboard interrupts. This should be done by calling KBD_ENABLE; merely
+                             26 ;;; clearing the F bit might cause a pending interrupt (possibly from the
+                             27 ;;; keyboard's init signal after first power-on) to be services, throwing off
+                             28 ;;; the bit counter.
+   E5F6 8E 00 1B      [ 3]   29 KBD_INIT::	ldx 	#KEYSTATE	;clear keyboard state
+   E5F9 6F 80         [ 8]   30 1$:		clr	,x+
+   E5FB 8C 00 2F      [ 4]   31 		cmpx	#KBD_BUFEND
+   E5FE 23 F9         [ 3]   32 		bls	1$
+   E600 86 0A         [ 2]   33 		lda	#10		;initialize bit counter
+   E602 97 1D         [ 4]   34 		sta	*KBD_BITSLEFT
+   E604 CC 00 20      [ 3]   35 		ldd	#KBD_BUFSTART	;initialize buffer pointers
+   E607 DD 30         [ 5]   36 		std	*KBD_HEADPTR
+   E609 DD 32         [ 5]   37 		std	*KBD_TAILPTR
+   E60B CC E6 25      [ 3]   38 		ldd	#KBD_HANDLER	;install interrupt handler
+   E60E DD 06         [ 5]   39 		std	*FIRQVEC
+   E610 B6 C0 0C      [ 5]   40 		lda	VIA_PCR
+   E613 84 FE         [ 2]   41 		anda	#0b11111110	;interrupt on CA1 negative edge
+   E615 B7 C0 0C      [ 5]   42 		sta	VIA_PCR
+   E618 86 82         [ 2]   43 		lda	#IER_SET|CA1_INT
+   E61A B7 C0 0E      [ 5]   44 		sta	VIA_IER		;enable CA1 interrupt
+   E61D 39            [ 5]   45 		rts
+                             46 
+                             47 
+                             48 ;;; enables the keyboard interrupt (FIRQ)
+                             49 ;;; arguments:	none
+                             50 ;;; returns:	none
+                             51 ;;; destroys:	A, clears F in CC
+                             52 ;;;
+                             53 ;;; Don't clear F directly, use this function instead.
+   E61E 1C BF         [ 3]   54 KBD_ENABLE::	andcc	#0b10111111	;clear F bit
+   E620 86 0A         [ 2]   55 		lda	#10
+   E622 97 1D         [ 4]   56 		sta	*KBD_BITSLEFT	;reset bit counter in case there was
+   E624 39            [ 5]   57 		rts			;  a pending interrupt
+                             58 
+                             59 
+                             60 ;;; keyboard interrupt handler
+                             61 ;;; typical PS/2 clock is 15 kHz (66.67 us period) so this should be fine
+   E625                      62 KBD_HANDLER:
+                     0000    63 	.if 0
+                             64 		tst	VIA_ORA
+                             65 		dec	*KBD_BITSLEFT
+                             66 		bmi	kbh_stopbit
+                             67 		tst	0xCD00|KBD_BITSLEFT
+                             68 		;tst	VIA_IRB
+                             69 		;tst	0xCF00
+                             70 		rti
+                             71 kbh_stopbit:	sta	*KBD_SAVE
+                             72 		lda	#10
+                             73 		sta	KBD_BITSLEFT
+                             74 		tst	0xCD00|KBD_BITSLEFT
+                             75 		;tst	VIA_IRB
+                             76 		;tst	0xCF00
+                             77 		tst	0xCE00|'-
+                             78 		lda	*KBD_SAVE
+                             79 		rti
+                     0001    80 	.else
+   E625 7D C0 01      [ 7]   81 		tst	VIA_ORA		;clear interrupt source
+   E628 0A 1D         [ 6]   82 		dec	*KBD_BITSLEFT
+   E62A 27 0C         [ 3]   83 		beq	kbh_done	;parity bit, ignore
+   E62C 2B 0B         [ 3]   84 		bmi	kbh_stopbit	;last bit, store scancode in buffer
+                             85 		;tst	0xCD00|KBD_BITSLEFT
+   E62E 97 1C         [ 4]   86 		sta	*KBD_SAVE	;save A register
+   E630 B6 C0 00      [ 5]   87 		lda	VIA_IRB		;read data bit (bit 7)
+   E633 48            [ 2]   88 		lsla
+   E634 06 1E         [ 6]   89 		ror	*KBD_SCANCODE	;shift into scancode
+   E636 96 1C         [ 4]   90 		lda	*KBD_SAVE	;restore A register
+   E638 3B            [15]   91 kbh_done:	rti
+   E639 97 1C         [ 4]   92 kbh_stopbit:	sta	*KBD_SAVE	;save A register
+   E63B 96 1E         [ 4]   93 		lda	*KBD_SCANCODE	;store scancode
+   E63D A7 9F 00 30   [ 9]   94 		sta	[KBD_HEADPTR]
+   E641 B6 00 31      [ 5]   95 		lda	KBD_HEADPTR_L	;advance head pointer
+   E644 4C            [ 2]   96 		inca
+   E645 84 EF         [ 2]   97 		anda	#KBD_BUFMASK	;force wraparound
+   E647 97 31         [ 4]   98 		sta	*KBD_HEADPTR_L
+   E649 86 0A         [ 2]   99 		lda	#10		;reset bit counter
+   E64B 97 1D         [ 4]  100 		sta	*KBD_BITSLEFT
+                            101 		;tst	0xCE00|'-
+   E64D 96 1C         [ 4]  102 		lda	*KBD_SAVE	;restore A register
+   E64F 3B            [15]  103 		rti
+                            104 	.endif
+                            105 
+                            106 ;;; fetch a scancode from the buffer
+                            107 ;;; arguments:	none
+                            108 ;;; returns:	scancode in B or 0 if buffer is empty
+                            109 ;;; destroys:	A
+   E650 C6 0A         [ 2]  110 KBD_GETCODE::	ldb	#10
+   E652 D1 1D         [ 4]  111 1$:		cmpb	*KBD_BITSLEFT	;wait until a full scancode is processed
+   E654 26 FC         [ 3]  112 		bne	1$
+   E656 D6 31         [ 4]  113 		ldb	*KBD_HEADPTR_L	;is the buffer empty?
+   E658 D1 33         [ 4]  114 		cmpb	*KBD_TAILPTR_L	;(i.e. head and tail are the same)
+   E65A 27 0D         [ 3]  115 		beq	bufempty
+   E65C E6 9F 00 32   [ 9]  116 		ldb	[KBD_TAILPTR]	;buffer not empty, get code
+   E660 96 33         [ 4]  117 		lda	*KBD_TAILPTR_L	;advance tail pointer
+   E662 4C            [ 2]  118 		inca
+   E663 84 EF         [ 2]  119 		anda	#KBD_BUFMASK	;force wraparound
+   E665 97 33         [ 4]  120 		sta	*KBD_TAILPTR_L
+   E667 5D            [ 2]  121 		tstb			;set flags for return
+   E668 39            [ 5]  122 getcodedone:	rts
+   E669 5F            [ 2]  123 bufempty:	clrb			;return 0
+   E66A 39            [ 5]  124 		rts
+                            125 
+                             93 		.include "keydecode.asm"
+                              1 ; vim:noet:sw=8:ts=8:ai:syn=as6809
+                              2 ; Matt Sarnoff (msarnoff.org/6809) - January 26, 2011
+                              3 ;
+                              4 ;************ PS/2 keyboard scancode decoding ************
+                              5 
+                              6 	.include "keycodes.inc"
+                              1 ; vim:noet:sw=8:ts=8:ai:syn=as6809
+                              2 ; Matt Sarnoff (msarnoff.org/6809) - January 26, 2011
+                              3 ;
+                              4 ;************ PS/2 keyboard scancode decoding ************
+                              5 
+                              6 ;;; Modifier state bits
+                     0080     7 L_SHIFT_BIT	.equ	0b10000000
+                     0040     8 R_SHIFT_BIT	.equ	0b01000000
+                     0020     9 L_CTRL_BIT	.equ	0b00100000
+                     0010    10 R_CTRL_BIT	.equ	0b00010000
+                     0008    11 L_ALT_BIT	.equ	0b00001000
+                     0004    12 R_ALT_BIT	.equ	0b00000100
+                     0002    13 EXTENDED_BIT	.equ	0b00000010
+                     0001    14 KEY_UP_BIT	.equ	0b00000001
+                             15 
+                             16 ;;; Non-ASCII key codes
+                     001B    17 K_ESC	.equ	0x1B
+                     0080    18 K_CPL	.equ	0x80	;caps lock
+                     0081    19 K_F1	.equ	0x81
+                     0082    20 K_F2	.equ	0x82
+                     0083    21 K_F3	.equ	0x83
+                     0084    22 K_F4	.equ	0x84
+                     0085    23 K_F5	.equ	0x85
+                     0086    24 K_F6	.equ	0x86
+                     0087    25 K_F7	.equ	0x87
+                     0088    26 K_F8	.equ	0x88
+                     0089    27 K_F9	.equ	0x89
+                     008A    28 K_F10	.equ	0x8A
+                     008B    29 K_F11	.equ	0x8B
+                     008C    30 K_F12	.equ	0x8C
+                     008D    31 K_UP	.equ	0x8D	;up arrow
+                     008E    32 K_LF	.equ	0x8E	;left arrow
+                     008F    33 K_DN	.equ	0x8F	;down arrow
+                     0090    34 K_RT	.equ	0x90	;right arrow
+                     0091    35 K_INS	.equ	0x91	;insert
+                     0092    36 K_DEL	.equ	0x92	;delete
+                     0093    37 K_HOM	.equ	0x93	;home
+                     0094    38 K_END	.equ	0x94	;end
+                     0095    39 K_PGU	.equ	0x95	;page up
+                     0096    40 K_PGD	.equ	0x96	;page down
+                     0097    41 K_NML	.equ	0x97	;num lock
+                     0098    42 K_SCL	.equ	0x98	;scroll lock
+                     0099    43 K_PRS	.equ	0x99	;print screen
+                     009A    44 K_BRK	.equ	0x9A	;break
+                             45 
+                              7 
+                              8 ;;; convert a scancode to an ASCII value or special key symbol
+                              9 ;;; arguments:	modifier state in A
+                             10 ;;;		scancode in B
+                             11 ;;; returns:	new modifier state in A
+                             12 ;;;		ASCII value (or special key symbol) in B
+                             13 ;;; destroys:	none
+                             14 ;;;
+                             15 ;;; The modifier state byte consists of the following bits:
+                             16 ;;; bit 0: set if previous scancode was 0xE0 or 0xE1 (used internally)
+                             17 ;;; bit 1: set if previous scancode was 0xF0 (used internally)
+                             18 ;;; bit 6: set if Control is depressed
+                             19 ;;; bit 7: set if Shift is depressed
+   E66B C1 F0         [ 2]   20 KBD_DECODE::	cmpb	#0xF0
+   E66D 27 0A         [ 3]   21 		beq	keyup		;set the key up bit
+   E66F C1 E0         [ 2]   22 		cmpb	#0xE0
+   E671 24 0A         [ 3]   23 		bhs	extended	;set the extended bit (E0 and E1)
+                             24 ; not a special keycode
+   E673 85 01         [ 2]   25 		bita	#KEY_UP_BIT
+   E675 27 3E         [ 3]   26 		beq	keypress	;if up bit is clear, this is a keypress
+   E677 20 08         [ 3]   27 		bra	keyrelease	;otherwise, it's a release
+                             28 
+   E679 8A 01         [ 2]   29 keyup:		ora	#KEY_UP_BIT
+   E67B 5F            [ 2]   30 		clrb
+   E67C 39            [ 5]   31 		rts
+   E67D 8A 02         [ 2]   32 extended:	ora	#EXTENDED_BIT
+   E67F 5F            [ 2]   33 		clrb
+   E680 39            [ 5]   34 		rts
+                             35 
+                             36 ; handling a key release
+   E681 84 FE         [ 2]   37 keyrelease:	anda	#~KEY_UP_BIT
+   E683 C1 12         [ 2]   38 		cmpb	#0x12		;is it a modifier key?
+   E685 27 0E         [ 3]   39 		beq	lshiftrelease
+   E687 C1 59         [ 2]   40 		cmpb	#0x59
+   E689 27 0E         [ 3]   41 		beq	rshiftrelease
+   E68B C1 14         [ 2]   42 		cmpb	#0x14
+   E68D 27 0E         [ 3]   43 		beq	ctrlrelease
+   E68F C1 11         [ 2]   44 		cmpb	#0x11
+   E691 27 16         [ 3]   45 		beq	altrelease
+   E693 20 50         [ 3]   46 		bra	moddone
+   E695 84 7F         [ 2]   47 lshiftrelease:	anda	#~L_SHIFT_BIT
+   E697 20 4C         [ 3]   48 		bra	moddone
+   E699 84 BF         [ 2]   49 rshiftrelease:	anda	#~R_SHIFT_BIT
+   E69B 20 48         [ 3]   50 		bra	moddone
+   E69D 85 02         [ 2]   51 ctrlrelease:	bita	#EXTENDED_BIT
+   E69F 26 04         [ 3]   52 		bne	rctrlrelease	;if prefixed with E0, right ctrl
+   E6A1 84 DF         [ 2]   53 		anda	#~L_CTRL_BIT
+   E6A3 20 40         [ 3]   54 		bra	moddone
+   E6A5 84 EF         [ 2]   55 rctrlrelease:	anda	#~R_CTRL_BIT
+   E6A7 20 3C         [ 3]   56 		bra	moddone
+   E6A9 85 02         [ 2]   57 altrelease:	bita	#EXTENDED_BIT
+   E6AB 26 04         [ 3]   58 		bne	raltrelease	;if prefixed with E0, right alt
+   E6AD 84 F7         [ 2]   59 		anda	#~L_ALT_BIT
+   E6AF 20 34         [ 3]   60 		bra	moddone
+   E6B1 84 FB         [ 2]   61 raltrelease:	anda	#~R_ALT_BIT
+   E6B3 20 30         [ 3]   62 		bra	moddone
+                             63 
+                             64 ; handling a key press
+   E6B5 C1 12         [ 2]   65 keypress:	cmpb	#0x12		;is it a modifier key?
+   E6B7 27 0E         [ 3]   66 		beq	lshiftpress
+   E6B9 C1 59         [ 2]   67 		cmpb	#0x59
+   E6BB 27 0E         [ 3]   68 		beq	rshiftpress
+   E6BD C1 14         [ 2]   69 		cmpb	#0x14
+   E6BF 27 0E         [ 3]   70 		beq	ctrlpress
+   E6C1 C1 11         [ 2]   71 		cmpb	#0x11
+   E6C3 27 16         [ 3]   72 		beq	altpress
+   E6C5 20 22         [ 3]   73 		bra	otherpress
+   E6C7 8A 80         [ 2]   74 lshiftpress:	ora	#L_SHIFT_BIT
+   E6C9 20 1A         [ 3]   75 		bra	moddone
+   E6CB 8A 40         [ 2]   76 rshiftpress:	ora	#R_SHIFT_BIT
+   E6CD 20 16         [ 3]   77 		bra	moddone
+   E6CF 85 02         [ 2]   78 ctrlpress:	bita	#EXTENDED_BIT
+   E6D1 26 04         [ 3]   79 		bne	rctrlpress	;if prefixed with E0, right ctrl
+   E6D3 8A 20         [ 2]   80 		ora	#L_CTRL_BIT
+   E6D5 20 0E         [ 3]   81 		bra	moddone
+   E6D7 8A 10         [ 2]   82 rctrlpress:	ora	#R_CTRL_BIT
+   E6D9 20 0A         [ 3]   83 		bra	moddone
+   E6DB 85 02         [ 2]   84 altpress:	bita	#EXTENDED_BIT
+   E6DD 26 04         [ 3]   85 		bne	raltpress	;if prefixed with E0, right alt
+   E6DF 8A 08         [ 2]   86 		ora	#L_ALT_BIT
+   E6E1 20 02         [ 3]   87 		bra	moddone
+   E6E3 8A 04         [ 2]   88 raltpress:	ora	#R_ALT_BIT
+   E6E5 84 FC         [ 2]   89 moddone:	anda	#~(EXTENDED_BIT|KEY_UP_BIT)
+   E6E7 5F            [ 2]   90 		clrb
+   E6E8 39            [ 5]   91 		rts
+                             92 
+                             93 ; other key pressed? convert to ASCII using tables
+   E6E9 34 40         [ 6]   94 otherpress:	pshs	u
+   E6EB CE E7 1B      [ 3]   95 		ldu	#code_table	;which code table to use?
+   E6EE 85 02         [ 2]   96 		bita	#EXTENDED_BIT
+   E6F0 26 06         [ 3]   97 		bne	useextended	;extended bit set? use extended table
+   E6F2 85 C0         [ 2]   98 		bita	#(L_SHIFT_BIT|R_SHIFT_BIT)
+   E6F4 26 0B         [ 3]   99 		bne	useshift	;either shift bit set? use shift table
+   E6F6 20 0C         [ 3]  100 		bra	keylookup	;none? use regular table
+   E6F8 CE E8 1B      [ 3]  101 useextended:	ldu	#extended_table
+   E6FB C0 48         [ 2]  102 		subb	#0x48		;all extended codes are higher than 0x48
+   E6FD C4 3F         [ 2]  103 		andb	#0b00111111	;so i'm not wasting 72 bytes of zeros
+   E6FF 20 03         [ 3]  104 		bra	keylookup
+   E701 CE E7 9B      [ 3]  105 useshift:	ldu	#shift_table
+                            106 
+   E704 C1 83         [ 2]  107 keylookup:	cmpb	#0x83		;F7 is the weird key with a code > 0x7F
+   E706 26 04         [ 3]  108 		bne	not_f7
+   E708 C6 87         [ 2]  109 		ldb	#K_F7
+   E70A 20 06         [ 3]  110 		bra	keypressdone
+   E70C E6 C5         [ 5]  111 not_f7:		ldb	b,u		;get ASCII code from lookup table
+   E70E 85 30         [ 2]  112 		bita	#(L_CTRL_BIT|R_CTRL_BIT)
+   E710 26 05         [ 3]  113 		bne	controlcode	;ctrl bit set? make a control code
+   E712 84 FD         [ 2]  114 keypressdone:	anda	#~EXTENDED_BIT
+   E714 5D            [ 2]  115 		tstb
+   E715 35 C0         [ 7]  116 		puls	u,pc
+                            117 
+   E717 C4 1F         [ 2]  118 controlcode:	andb	#31		;mask off top bits
+   E719 20 F7         [ 3]  119 		bra	keypressdone
+                            120 
+                            121 ;************ Scancode tables (set 2) ************
+                            122 
+                            123 ; Normal (non-shifted) scancodes
+   E71B                     124 code_table:
+   E71B 00 89 00 85 83 8C   125 	.fcb	0,     K_F9,  0,     K_F5,  K_F3,  K_F12, K_F2,  K_F12
+        82 8C
+   E723 00 8A 88 86 84 09   126 	.fcb	0,     K_F10, K_F8,  K_F6,  K_F4,  9,     '`,    0
+        60 00
+   E72B 00 00 00 00 00 71   127 	.fcb	0,     0,     0,     0,     0,     'q,    '1,    0
+        31 00
+   E733 00 00 7A 73 61 77   128 	.fcb	0,     0,     'z,    's,    'a,    'w,    '2,    0
+        32 00
+   E73B 00 63 78 64 65 34   129 	.fcb	0,     'c,    'x,    'd,    'e,    '4,    '3,    0
+        33 00
+   E743 00 20 76 66 74 72   130 	.fcb	0,     32,    'v,    'f,    't,    'r,    '5,    0
+        35 00
+   E74B 00 6E 62 68 67 79   131 	.fcb	0,     'n,    'b,    'h,    'g,    'y,    '6,    0
+        36 00
+   E753 00 00 6D 6A 75 37   132 	.fcb	0,     0,     'm,    'j,    'u,    '7,    '8,    0
+        38 00
+   E75B 00 2C 6B 69 6F 30   133 	.fcb	0,     ',,    'k,    'i,    'o,    '0,    '9,    0
+        39 00
+   E763 00 2E 2F 6C 3B 70   134 	.fcb	0,     '.,    '/,    'l,    ';,    'p,    '-,    0
+        2D 00
+   E76B 00 00 27 00 5B 3D   135 	.fcb	0,     0,     '',    0,     '[,    '=,    0,     0
+        00 00
+   E773 80 00 0D 5D 00 5C   136 	.fcb	K_CPL, 0,     13,    '],    0,     '\,    0,     0
+        00 00
+   E77B 00 00 00 00 00 00   137 	.fcb	0,     0,     0,     0,     0,     0,     8,     0
+        08 00
+   E783 00 31 00 34 37 00   138 	.fcb	0,     '1,    0,     '4,    '7,    0,     0,     0
+        00 00
+   E78B 30 2E 32 35 36 38   139 	.fcb	'0,    '.,    '2,    '5,    '6,    '8,    K_ESC, K_NML
+        1B 97
+   E793 8B 2B 33 2D 2A 39   140 	.fcb	K_F11, '+,    '3,    '-,    '*,    '9,    K_SCL, 0
+        98 00
+                            141 
+                            142 ; Shifted scancodes
+   E79B                     143 shift_table:
+   E79B 00 89 00 85 83 8C   144 	.fcb	0,     K_F9,  0,     K_F5,  K_F3,  K_F12, K_F2,  K_F12
+        82 8C
+   E7A3 00 8A 88 86 84 09   145 	.fcb	0,     K_F10, K_F8,  K_F6,  K_F4,  9,     '~,    0
+        7E 00
+   E7AB 00 00 00 00 00 51   146 	.fcb	0,     0,     0,     0,     0,     'Q,    '!,    0
+        21 00
+   E7B3 00 00 5A 53 41 57   147 	.fcb	0,     0,     'Z,    'S,    'A,    'W,    '@,    0
+        40 00
+   E7BB 00 43 58 44 45 24   148 	.fcb	0,     'C,    'X,    'D,    'E,    '$,    '#,    0
+        23 00
+   E7C3 00 20 56 46 54 52   149 	.fcb	0,     32,    'V,    'F,    'T,    'R,    '%,    0
+        25 00
+   E7CB 00 4E 42 48 47 59   150 	.fcb	0,     'N,    'B,    'H,    'G,    'Y,    '^,    0
+        5E 00
+   E7D3 00 00 4D 4A 55 26   151 	.fcb	0,     0,     'M,    'J,    'U,    '&,    '*,    0
+        2A 00
+   E7DB 00 3C 4B 49 4F 29   152 	.fcb	0,     '<,    'K,    'I,    'O,    '),    '(,    0
+        28 00
+   E7E3 00 3E 3F 4C 3A 50   153 	.fcb	0,     '>,    '?,    'L,    ':,    'P,    '_,    0
+        5F 00
+   E7EB 00 00 22 00 7B 2B   154 	.fcb	0,     0,     '",    0,     '{,    '+,    0,     0
+        00 00
+   E7F3 80 00 0A 7D 00 7C   155 	.fcb	K_CPL, 0,     10,    '},    0,     '|,    0,     0
+        00 00
+   E7FB 00 00 00 00 00 00   156 	.fcb	0,     0,     0,     0,     0,     0,     8,     0
+        08 00
+   E803 00 31 00 34 37 00   157 	.fcb	0,     '1,    0,     '4,    '7,    0,     0,     0
+        00 00
+   E80B 30 2E 32 35 36 38   158 	.fcb	'0,    '.,    '2,    '5,    '6,    '8,    K_ESC, K_NML
+        1B 97
+   E813 8B 2B 33 2D 2A 39   159 	.fcb	K_F11, '+,    '3,    '-,    '*,    '9,    K_SCL, 0
+        98 00
+                            160 	
+                            161 ; Extended scancodes
+   E81B                     162 extended_table:
+   E81B 00 00 2F 00 00 00   163 	.fcb	0,     0,     '/,    0,     0,     0,     0,     0
+        00 00
+   E823 00 00 00 00 00 00   164 	.fcb	0,     0,     0,     0,     0,     0,     0,     0
+        00 00
+   E82B 00 00 0A 00 00 00   165 	.fcb	0,     0,     10,    0,     0,     0,     0,     0
+        00 00
+   E833 00 00 00 00 00 00   166 	.fcb	0,     0,     0,     0,     0,     0,     0,     0
+        00 00
+   E83B 00 94 00 8E 93 00   167 	.fcb	0,     K_END, 0,     K_LF,  K_HOM, 0,     0,     0
+        00 00
+   E843 91 92 8F 35 90 8D   168 	.fcb	K_INS, K_DEL, K_DN,  '5,    K_RT,  K_UP,  0,     K_BRK
+        00 9A
+   E84B 00 00 96 00 99 95   169 	.fcb	0,     0,     K_PGD, 0,     K_PRS, K_PGU, 0,     0
+        00 00
+                            170 
+                             94 		.include "console.asm"
+                              1 ; vim:noet:sw=8:ts=8:ai:syn=as6809
+                              2 ; Matt Sarnoff (msarnoff.org/6809) - May 15, 2011
+                              3 ;
+                              4 ; Text-mode console routines using the TMS9918A and PS/2 keyboard
+                              5 
+                              6 ;;; enable the text console
+                              7 ;;; arguments:	none
+                              8 ;;; returns:	none
+   E853 BD E1 3C      [ 8]    9 TEXT_CONSOLE::	jsr	VDP_INITTEXT	;clear memory and setup charset
+   E856 CC 4C 00      [ 3]   10 		ldd	#VRAM|TEXT_PATTABLE+(128*8)
+   E859 F7 CC 01      [ 5]   11 		stb	VDP_REG
+   E85C B7 CC 01      [ 5]   12 		sta	VDP_REG
+   E85F 8E E1 F6      [ 3]   13 		ldx	#TEXTFONT
+   E862 C6 80         [ 2]   14 		ldb	#128
+   E864 BD E1 8F      [ 8]   15 		jsr	VDP_LOADIPATS	;load inverted character set
+   E867 CC 00 00      [ 3]   16 		ldd	#0
+   E86A DD 19         [ 5]   17 		std	*CURSORPOS
+   E86C CC E8 A8      [ 3]   18 		ldd	#TEXT_OUTCH	;set up I/O routines
+   E86F DD 0E         [ 5]   19 		std	*OUTCH
+   E871 CC E9 D5      [ 3]   20 		ldd	#KBD_INCH
+   E874 DD 10         [ 5]   21 		std	*INCH
+   E876 BD E1 E4      [ 8]   22 		jsr	VDP_TEXT_ON	;turn the on display
+   E879 CC 40 00      [ 3]   23 		ldd	#VRAM|0x0000	;initialize VRAM address
+   E87C F7 CC 01      [ 5]   24 		stb	VDP_REG
+   E87F B7 CC 01      [ 5]   25 		sta	VDP_REG
+   E882 BD E9 0F      [ 8]   26 		jsr	cursor_invert
+   E885 BD E5 F6      [ 8]   27 		jsr	KBD_INIT
+   E888 1C EF         [ 3]   28 		andcc	#0b11101111	;enable keyboard interrupt
+   E88A BD E6 1E      [ 8]   29 		jsr	KBD_ENABLE
+   E88D 39            [ 5]   30 		rts
+                             31 
+                             32 ;;; clear the screen and return the cursor to the home position
+                             33 ;;; arguments:	none
+                             34 ;;; returns:	none
+                             35 ;;; destroys:	none
+   E88E 34 16         [ 8]   36 TEXT_CLEAR::	pshs	a,b,x
+   E890 CC 00 00      [ 3]   37 text_clear:	ldd	#0
+   E893 DD 19         [ 5]   38 		std	*CURSORPOS
+   E895 8A 40         [ 2]   39 		ora	#0x40
+   E897 F7 CC 01      [ 5]   40 		stb	VDP_REG
+   E89A B7 CC 01      [ 5]   41 		sta	VDP_REG
+   E89D 8E 03 C0      [ 3]   42 		ldx	#960
+   E8A0 4F            [ 2]   43 		clra
+   E8A1 BD E1 31      [ 8]   44 		jsr	VDP_FILL
+   E8A4 8D 69         [ 7]   45 		bsr	cursor_invert
+   E8A6 35 96         [ 9]   46 		puls	a,b,x,pc
+                             47 
+                             48 ;;; print a character on the screen, interpreting the following characters:
+                             49 ;;; - carriage return
+                             50 ;;; - newline 
+                             51 ;;; - backspace
+                             52 ;;; - clear (Ctrl-L)
+                             53 ;;; arguments:	character in B
+                             54 ;;; returns:	none
+                             55 ;;; destroys:	none
+   E8A8 34 46         [ 8]   56 TEXT_OUTCH::	pshs	a,b,u
+   E8AA C1 0A         [ 2]   57 		cmpb	#0x0A		;newline
+   E8AC 27 1C         [ 3]   58 		beq	text_nop
+   E8AE C1 0D         [ 2]   59 		cmpb	#0x0D
+   E8B0 27 4E         [ 3]   60 		beq	text_crlf
+   E8B2 C1 08         [ 2]   61 		cmpb	#0x08
+   E8B4 27 4E         [ 3]   62 		beq	text_backspace
+   E8B6 C1 7F         [ 2]   63 		cmpb	#0x7F
+   E8B8 27 4A         [ 3]   64 		beq	text_backspace
+   E8BA C1 0C         [ 2]   65 		cmpb	#0x0C
+   E8BC 27 D2         [ 3]   66 		beq	text_clear
+   E8BE 8D 4F         [ 7]   67 		bsr	cursor_invert
+   E8C0 F7 CC 00      [ 5]   68 		stb	VDP_VRAM	;print character
+   E8C3 DC 19         [ 5]   69 		ldd	*CURSORPOS	;advance cursor position
+   E8C5 C3 00 01      [ 4]   70 		addd	#1
+   E8C8 20 09         [ 3]   71 		bra	text_setpos
+   E8CA 35 C6         [ 9]   72 text_nop:	puls	a,b,u,pc
+                             73 
+   E8CC 8D 41         [ 7]   74 text_lf:	bsr	cursor_invert
+   E8CE DC 19         [ 5]   75 		ldd	*CURSORPOS	;add 40 to cursor position
+   E8D0 C3 00 28      [ 4]   76 _text_lf:	addd	#40
+   E8D3 10 83 03 C0   [ 5]   77 text_setpos:	cmpd	#0x0000+960 ;need to scroll?
+   E8D7 25 02         [ 3]   78 		blo	_text_setpos
+   E8D9 8D 60         [ 7]   79 		bsr	text_scrollup
+   E8DB DD 19         [ 5]   80 _text_setpos:	std	*CURSORPOS	;store new position
+   E8DD 8A 40         [ 2]   81 		ora	#0x40		;update VRAM address
+   E8DF F7 CC 01      [ 5]   82 		stb	VDP_REG
+   E8E2 B7 CC 01      [ 5]   83 		sta	VDP_REG
+   E8E5 8D 28         [ 7]   84 		bsr	cursor_invert
+   E8E7 35 C6         [ 9]   85 		puls	a,b,u,pc
+                             86 
+   E8E9 8D 02         [ 7]   87 text_cr:	bsr	_text_cr
+   E8EB 20 E6         [ 3]   88 		bra	text_setpos
+                             89 
+   E8ED 8D 20         [ 7]   90 _text_cr:	bsr	cursor_invert
+   E8EF DC 19         [ 5]   91 		ldd	*CURSORPOS	;divide cursor position by 8
+   E8F1 44            [ 2]   92 		lsra
+   E8F2 56            [ 2]   93 		rorb
+   E8F3 44            [ 2]   94 		lsra
+   E8F4 56            [ 2]   95 		rorb
+   E8F5 44            [ 2]   96 		lsra
+   E8F6 56            [ 2]   97 		rorb
+   E8F7 CE E9 E8      [ 3]   98 		ldu	#linenumbers	;get the current line number
+   E8FA E6 C5         [ 5]   99 		ldb	b,u
+   E8FC 86 28         [ 2]  100 		lda	#40		;compute new line address
+   E8FE 3D            [11]  101 		mul
+   E8FF 39            [ 5]  102 		rts
+                            103 
+   E900 8D EB         [ 7]  104 text_crlf:	bsr	_text_cr
+   E902 20 CC         [ 3]  105 		bra	_text_lf
+                            106 
+   E904 8D 09         [ 7]  107 text_backspace:	bsr	cursor_invert
+   E906 DC 19         [ 5]  108 		ldd	*CURSORPOS	;subtract 1 from cursor position
+   E908 27 C0         [ 3]  109 		beq	text_nop
+   E90A 83 00 01      [ 4]  110 		subd	#1
+   E90D 20 C4         [ 3]  111 		bra	text_setpos
+                            112 
+   E90F 34 04         [ 6]  113 cursor_invert:	pshs	b
+   E911 DC 19         [ 5]  114 		ldd	*CURSORPOS	;read character at cursor position
+   E913 F7 CC 01      [ 5]  115 		stb	VDP_REG
+   E916 B7 CC 01      [ 5]  116 		sta	VDP_REG
+   E919 F6 CC 00      [ 5]  117 		ldb	VDP_VRAM
+   E91C C8 80         [ 2]  118 		eorb	#0b10000000	;invert msb
+   E91E 34 04         [ 6]  119 		pshs	b
+   E920 DC 19         [ 5]  120 		ldd	*CURSORPOS
+   E922 8A 40         [ 2]  121 		ora	#0x40
+   E924 F7 CC 01      [ 5]  122 		stb	VDP_REG
+   E927 B7 CC 01      [ 5]  123 		sta	VDP_REG
+   E92A 35 04         [ 6]  124 		puls	b
+   E92C F7 CC 00      [ 5]  125 		stb	VDP_VRAM	;store new character
+   E92F DC 19         [ 5]  126 		ldd	*CURSORPOS	;restore VRAM address
+   E931 8A 40         [ 2]  127 		ora	#0x40		;(since it was autoincremented)
+   E933 F7 CC 01      [ 5]  128 		stb	VDP_REG
+   E936 B7 CC 01      [ 5]  129 		sta	VDP_REG
+   E939 35 84         [ 7]  130 		puls	b,pc
+                            131 
+   E93B 86 17         [ 2]  132 text_scrollup:	lda	#23		;23 lines to scroll
+   E93D 34 02         [ 6]  133 		pshs	a
+   E93F CC 00 28      [ 3]  134 		ldd	#0x0000+40 ;temporary VRAM address
+   E942 34 06         [ 7]  135 		pshs	d
+   E944 32 E8 D8      [ 5]  136 		leas	-40,s		;grab us some stack space
+                            137 ;---- line scroll loop
+   E947 1F 43         [ 6]  138 text_grabline:	tfr	s,u		;pointer to start of temp buffer
+   E949 EC E8 28      [ 6]  139 		ldd	40,s		;set VRAM address
+   E94C F7 CC 01      [ 5]  140 		stb	VDP_REG
+   E94F B7 CC 01      [ 5]  141 		sta	VDP_REG
+   E952 86 28         [ 2]  142 		lda	#40		;read a line from VRAM
+   E954 F6 CC 00      [ 5]  143 1$:		ldb	VDP_VRAM	;get a byte
+   E957 E7 C0         [ 6]  144 		stb	,u+		;store it in the temp buffer
+   E959 4A            [ 2]  145 		deca
+   E95A 26 F8         [ 3]  146 		bne	1$
+                            147 
+   E95C EC E8 28      [ 6]  148 text_moveline:	ldd	40,s		;get VRAM address
+   E95F 83 00 28      [ 4]  149 		subd	#40		;move up one line
+   E962 8A 40         [ 2]  150 		ora	#0x40		;set VRAM address for write
+   E964 F7 CC 01      [ 5]  151 		stb	VDP_REG
+   E967 B7 CC 01      [ 5]  152 		sta	VDP_REG
+   E96A 1F 43         [ 6]  153 		tfr	s,u
+   E96C 86 28         [ 2]  154 		lda	#40
+   E96E E6 C0         [ 6]  155 2$:		ldb	,u+		;write the buffer back to VRAM
+   E970 F7 CC 00      [ 5]  156 		stb	VDP_VRAM
+   E973 4A            [ 2]  157 		deca
+   E974 26 F8         [ 3]  158 		bne	2$
+                            159 ;---- end line scroll loop
+   E976 EC E8 28      [ 6]  160 		ldd	40,s		;advance to next line
+   E979 C3 00 28      [ 4]  161 		addd	#40
+   E97C ED E8 28      [ 6]  162 		std	40,s
+   E97F 6A E8 2A      [ 7]  163 		dec	42,s		;decrement line count
+   E982 26 C3         [ 3]  164 		bne	text_grabline
+                            165 ; blank the last line
+   E984 8D 29         [ 7]  166 		bsr	clear_line
+                            167 ; put the cursor at the start of the bottom line
+   E986 CC 03 98      [ 3]  168 		ldd	#0x0000+(40*23)
+   E989 32 E8 2B      [ 5]  169 		leas	43,s		;reclaim stack space
+   E98C 39            [ 5]  170 		rts
+                            171 
+                            172 ;;; move the cursor to the first position on the specified line (in A)
+                            173 ;;; and clear the line
+                            174 ;;; arguments:	line number in A, indexed from 1 (for ANSI compatibility)
+                            175 ;;; returns:	none
+                            176 ;;; destroys:	A,B
+   E98D 8D 2B         [ 7]  177 TEXT_CLRLINE::	bsr	TEXT_SETLINE
+                            178 		;fall through to TEXT_CLRCURLN
+                            179 
+                            180 ;;; clear current line and return cursor to start
+                            181 ;;; arguments:	none
+                            182 ;;; returns:	none
+                            183 ;;; destroys:	A,B
+   E98F BD E8 ED      [ 8]  184 TEXT_CLRCURLN::	jsr	_text_cr
+   E992 34 06         [ 7]  185 		pshs	d		;save VRAM address
+   E994 DD 19         [ 5]  186 		std	*CURSORPOS
+   E996 8A 40         [ 2]  187 		ora	#0x40
+   E998 F7 CC 01      [ 5]  188 		stb	VDP_REG
+   E99B B7 CC 01      [ 5]  189 		sta	VDP_REG
+   E99E 8D 0F         [ 7]  190 		bsr	clear_line
+   E9A0 35 06         [ 7]  191 		puls	d		;restore VRAM address
+   E9A2 DD 19         [ 5]  192 __text_setpos:	std	*CURSORPOS	;store new position
+   E9A4 8A 40         [ 2]  193 		ora	#0x40		;update VRAM address
+   E9A6 F7 CC 01      [ 5]  194 		stb	VDP_REG
+   E9A9 B7 CC 01      [ 5]  195 		sta	VDP_REG
+   E9AC 7E E9 0F      [ 4]  196 		jmp	cursor_invert
+                            197 
+   E9AF 86 28         [ 2]  198 clear_line:	lda	#40
+   E9B1 C6 20         [ 2]  199 		ldb	#0x20
+   E9B3 F7 CC 00      [ 5]  200 1$:		stb	VDP_VRAM
+   E9B6 4A            [ 2]  201 		deca
+   E9B7 26 FA         [ 3]  202 		bne	1$
+   E9B9 39            [ 5]  203 		rts
+                            204 
+                            205 ;;; move the cursor to the first position on the specified line
+                            206 ;;; arguments:	line number in A, indexed from 1 (for ANSI compatibility)
+                            207 ;;; returns:	none
+                            208 ;;; destroys:	A,B
+   E9BA 4A            [ 2]  209 TEXT_SETLINE::	deca			;make zero-indexed
+   E9BB 34 02         [ 6]  210 		pshs	a
+   E9BD BD E9 0F      [ 8]  211 		jsr	cursor_invert
+   E9C0 35 02         [ 6]  212 		puls	a		;compute line position
+   E9C2 C6 28         [ 2]  213 		ldb	#40
+   E9C4 3D            [11]  214 		mul
+   E9C5 20 DB         [ 3]  215 		bra	__text_setpos	;update cursor position
+                            216 	
+                            217 ;;; move the cursor to the specified column on the current line
+                            218 ;;; arguments:	column number in B, indexed from 1
+                            219 ;;; returns:	none
+                            220 ;;; destroys:	A,B
+   E9C7 5A            [ 2]  221 TEXT_SETCOL::	decb			;make zero-indexed
+   E9C8 34 04         [ 6]  222 		pshs	b
+   E9CA BD E8 ED      [ 8]  223 		jsr	_text_cr	;return to start of line
+   E9CD EB E4         [ 4]  224 		addb	,s		;add offset to cursor position
+   E9CF 89 00         [ 2]  225 		adca	#0
+   E9D1 32 61         [ 5]  226 		leas	1,s
+   E9D3 20 CD         [ 3]  227 		bra	__text_setpos
+                            228 
+                            229 ;;; keyboard input routine, blocks until a keystroke is received
+                            230 ;;; arguments:	none
+                            231 ;;; returns:	ASCII character in B
+                            232 ;;; destroys:	none
+   E9D5 34 02         [ 6]  233 KBD_INCH::	pshs	a	
+   E9D7 BD E6 50      [ 8]  234 getkey:		jsr	KBD_GETCODE	;get a scancode
+   E9DA 27 FB         [ 3]  235 		beq	getkey		;loop if there aren't any
+   E9DC 96 1B         [ 4]  236 		lda	*KEYSTATE	;ok, convert scancode to ASCII
+   E9DE BD E6 6B      [ 8]  237 		jsr	KBD_DECODE
+   E9E1 97 1B         [ 4]  238 		sta	*KEYSTATE
+   E9E3 5D            [ 2]  239 		tstb
+   E9E4 27 F1         [ 3]  240 		beq	getkey		;try again if 0 is returned
+   E9E6 35 82         [ 7]  241 		puls	a,pc		;otherwise, return character
+                            242 
+   E9E8 00 00 00 00 00      243 linenumbers:	.fcb	0, 0, 0, 0, 0
+   E9ED 01 01 01 01 01      244 		.fcb	1, 1, 1, 1, 1
+   E9F2 02 02 02 02 02      245 		.fcb	2, 2, 2, 2, 2
+   E9F7 03 03 03 03 03      246 		.fcb	3, 3, 3, 3, 3
+   E9FC 04 04 04 04 04      247 		.fcb	4, 4, 4, 4, 4
+   EA01 05 05 05 05 05      248 		.fcb	5, 5, 5, 5, 5
+   EA06 06 06 06 06 06      249 		.fcb	6, 6, 6, 6, 6
+   EA0B 07 07 07 07 07      250 		.fcb	7, 7, 7, 7, 7
+   EA10 08 08 08 08 08      251 		.fcb	8, 8, 8, 8, 8
+   EA15 09 09 09 09 09      252 		.fcb	9, 9, 9, 9, 9
+   EA1A 0A 0A 0A 0A 0A      253 		.fcb	10,10,10,10,10
+   EA1F 0B 0B 0B 0B 0B      254 		.fcb	11,11,11,11,11
+   EA24 0C 0C 0C 0C 0C      255 		.fcb	12,12,12,12,12
+   EA29 0D 0D 0D 0D 0D      256 		.fcb	13,13,13,13,13
+   EA2E 0E 0E 0E 0E 0E      257 		.fcb	14,14,14,14,14
+   EA33 0F 0F 0F 0F 0F      258 		.fcb	15,15,15,15,15
+   EA38 10 10 10 10 10      259 		.fcb	16,16,16,16,16
+   EA3D 11 11 11 11 11      260 		.fcb	17,17,17,17,17
+   EA42 12 12 12 12 12      261 		.fcb	18,18,18,18,18
+   EA47 13 13 13 13 13      262 		.fcb	19,19,19,19,19
+   EA4C 14 14 14 14 14      263 		.fcb	20,20,20,20,20
+   EA51 15 15 15 15 15      264 		.fcb	21,21,21,21,21
+   EA56 16 16 16 16 16      265 		.fcb	22,22,22,22,22
+   EA5B 17 17 17 17 17      266 		.fcb	23,23,23,23,23
+                             95 		.include "startup.asm"
+                              1 ; vim:noet:sw=8:ts=8:ai:syn=as6809
+                              2 ; Matt Sarnoff (msarnoff.org/6809) - December 12, 2010
+                              3 
+                              4 ;************ Startup routine ************
+                              5 
+   EA60 1A 50         [ 3]    6 STARTUP::	orcc	#0b01010000	;disable interrupts
+   EA62 10 CE 01 00   [ 4]    7 		lds	#0x100	;restore stack and DP
+   EA66 86 00         [ 2]    8 		lda	#0
+   EA68 1F 8B         [ 6]    9 		tfr	a,dp
+   EA6A B6 CC 04      [ 5]   10 		lda	VBANK_LOWER	;select lower 16K of VRAM
+   EA6D BD E1 3C      [ 8]   11 		jsr	VDP_INITTEXT	;start text mode, display off
+   EA70 BD E1 E4      [ 8]   12 		jsr	VDP_TEXT_ON
+                             13 
+                             14 ; print strings and RAM count
+   EA73 CC E1 E0      [ 3]   15 		ldd	#VDP_OUTCH
+   EA76 DD 0E         [ 5]   16 		std	*OUTCH
+                             17 
+   EA78 CC 40 00      [ 3]   18 		ldd	#VRAM|TEXT_NAMETABLE
+   EA7B 8E FF 8B      [ 3]   19 		ldx	#ultim809
+   EA7E CE E1 C5      [ 3]   20 		ldu	#VDP_PRINTSTR
+   EA81 AD C4         [ 7]   21 		jsr	,u		;print "ULTIM809"
+   EA83 CC 40 28      [ 3]   22 		ldd	#VRAM|TEXT_NAMETABLE+40
+   EA86 AD C4         [ 7]   23 		jsr	,u		;print ROM version
+   EA88 CC 40 50      [ 3]   24 		ldd	#VRAM|TEXT_NAMETABLE+80
+   EA8B F7 CC 01      [ 5]   25 		stb	VDP_REG
+   EA8E B7 CC 01      [ 5]   26 		sta	VDP_REG
+   EA91 DC 13         [ 5]   27 		ldd	*RAM_KB_BCD
+   EA93 BD E1 0B      [ 8]   28 		jsr	OUTBCDW		;print RAM size
+   EA96 BD E1 CD      [ 8]   29 		jsr	VDP_PRINTSTRC	;print "KB RAM available"
+   EA99 CC 40 A0      [ 3]   30 		ldd	#VRAM|TEXT_NAMETABLE+160
+   EA9C AD C4         [ 7]   31 		jsr	,u		;print "Press INTERRUPT..."
+                             32 
+                             33 ; turn on display and set green LED
+   EA9E C6 04         [ 2]   34 		ldb	#LED_GREEN
+   EAA0 BD E0 94      [ 8]   35 		jsr	UART_SETLED
+                             36 
+                             37 ; loop
+   EAA3 20 FE         [ 3]   38 		bra	.
+                             96 		.include "remote.asm"
+                              1 ; vim:noet:sw=8:ts=8:ai:syn=as6809
+                              2 ; Matt Sarnoff (msarnoff.org/6809) - December 7, 2010
+                              3 
+                              4 ;************ Remote debugger/monitor ************
+                              5 ;
+                              6 ; Uses a simplified protocol, inspired by on NoICE's serial protocol
+                              7 ; Can be used for program uploading and ROM flashing
+                              8 
+                              9 ; commands
+                     00FE    10 FN_READ_MEM	.equ	0xFE
+                     00FD    11 FN_WRITE_MEM	.equ	0xFD
+                     00FA    12 FN_RUN_TARGET	.equ	0xFA
+                     00F3    13 FN_ROMLD_START	.equ	0xF3		;causes monitor to be relocated into RAM
+                     00F2    14 FN_ROMLD_DONE	.equ	0xF2		;jumps back to monitor in ROM
+                             15 
+                             16 ; monitor uses the zero page
+                     00FF    17 MONSTKSTART	.equ	0x00FF
+                     0000    18 MONPAGE		.equ	0x00
+                             19 
+                     0050    20 MONVARSTART	.equ	0x50		;start of monitor variables
+                     0050    21 STACKFRAME	.equ	MONVARSTART	;saved stack pointer
+                     0052    22 COUNT		.equ	MONVARSTART+2
+                     0100    23 RELOC_DEST	.equ	0x0100		;destination when relocated into RAM
+                             24 
+                             25 ; the monitor is always placed at a fixed location,
+                             26 ; so it can be resumed after the ROM has been rewritten
+                             27 ; must be entered from an interrupt that pushes all registers on stack
+                     FE40    28 MONSTART	.equ	0xFE40
+                             29 
+   FE40                      30 	.org	MONSTART
+   FE40 1A 50         [ 3]   31 REMOTEMONITOR::	orcc	#0b01010000	;disable all interrupts
+   FE42 86 00         [ 2]   32 		lda	#MONPAGE	;reset direct page register
+   FE44 1F 8B         [ 6]   33 		tfr	a,dp
+   FE46 10 DF 50      [ 6]   34 		sts	*STACKFRAME	;save stack pointer
+   FE49 10 CE 01 00   [ 4]   35 		lds	#MONSTKSTART+1	;enable the monitor stack
+   FE4D C6 00         [ 2]   36 		ldb	#LED_YELLOW
+   FE4F F7 C4 04      [ 5]   37 		stb	UART_MCR
+                             38 ; set up text mode video, print ready message
+   FE52 B6 CC 04      [ 5]   39 		lda	VBANK_LOWER
+   FE55 BD E1 3C      [ 8]   40 		jsr	VDP_INITTEXT
+   FE58 CC 00 00      [ 3]   41 		ldd	#TEXT_NAMETABLE+0
+   FE5B 8E FF 76      [ 3]   42 		ldx	#monreadystr
+   FE5E BD E1 C5      [ 8]   43 		jsr	VDP_PRINTSTR
+   FE61 BD E1 E4      [ 8]   44 		jsr	VDP_TEXT_ON
+                             45 
+                     FE64    46 RELOC_START	.equ	.
+   FE64 8D 1E         [ 7]   47 monitorloop:	bsr	serrecv
+   FE66 C1 FE         [ 2]   48 		cmpb	#FN_READ_MEM
+   FE68 27 6B         [ 3]   49 		beq	readmem
+   FE6A C1 FD         [ 2]   50 		cmpb	#FN_WRITE_MEM
+   FE6C 10 27 00 7C   [ 6]   51 		lbeq	writemem
+   FE70 C1 FA         [ 2]   52 		cmpb	#FN_RUN_TARGET
+   FE72 10 27 00 AA   [ 6]   53 		lbeq	runtarget
+   FE76 C1 F3         [ 2]   54 		cmpb	#FN_ROMLD_START
+   FE78 10 27 00 AE   [ 6]   55 		lbeq	relocate
+   FE7C C1 F2         [ 2]   56 		cmpb	#FN_ROMLD_DONE
+   FE7E 10 27 00 BE   [ 6]   57 		lbeq	romreturn
+   FE82 20 3F         [ 3]   58 		bra	cmderror	;unrecognized command
+                             59 
+                             60 ; wait for a byte from the serial port, break on error
+                             61 ; byte returned in B
+   FE84 F6 C4 05      [ 5]   62 serrecv:	ldb	UART_LSR
+   FE87 C5 8E         [ 2]   63 		bitb	#0b10001110	;check for errors
+   FE89 26 17         [ 3]   64 		bne	sererror
+   FE8B C5 01         [ 2]   65 		bitb	#0b00000001	;no error? wait for RDR full
+   FE8D 27 F5         [ 3]   66 		beq	serrecv
+   FE8F F6 C4 00      [ 5]   67 		ldb	UART_RHR	;get byte
+   FE92 39            [ 5]   68 		rts
+                             69 
+                             70 ; on error, print message and freeze
+   FE93 52 45 43 45 49 56    71 sererrorstr:	.asciz	"RECEIVE ERROR "
+        45 20 45 52 52 4F
+        52 20 00
+   FEA2 34 04         [ 6]   72 sererror:	pshs	b
+   FEA4 30 8C EC      [ 5]   73 		leax	sererrorstr,pcr
+   FEA7 17 00 99      [ 9]   74 printerror:	lbsr	mon_printstr
+   FEAA 35 04         [ 6]   75 		puls	b
+   FEAC 17 00 AF      [ 9]   76 		lbsr	mon_printhexb
+   FEAF C6 08         [ 2]   77 		ldb	#LED_RED	;error, red LED
+   FEB1 F7 C4 04      [ 5]   78 		stb	UART_MCR
+   FEB4 20 FE         [ 3]   79 		bra	.		;infinite loop
+                             80 
+   FEB6 42 41 44 20 43 4F    81 cmderrorstr:	.asciz	"BAD COMMAND "
+        4D 4D 41 4E 44 20
+        00
+   FEC3 34 04         [ 6]   82 cmderror:	pshs	b
+   FEC5 30 8C EE      [ 5]   83 		leax	cmderrorstr,pcr
+   FEC8 20 DD         [ 3]   84 		bra	printerror
+                             85 
+                             86 
+                             87 ; send the byte in B to the serial port
+   FECA 86 20         [ 2]   88 sersend:	lda	#0b00100000
+   FECC B5 C4 05      [ 5]   89 sersendcheck:	bita	UART_LSR	;transmit holding register ready?
+   FECF 27 FB         [ 3]   90 		beq	sersendcheck
+   FED1 F7 C4 00      [ 5]   91 		stb	UART_THR	;send byte
+   FED4 39            [ 5]   92 		rts
+                             93 		
+                             94 ; read bytes from memory and send them over the serial port
+                             95 ; byte 1: memory address MSB
+                             96 ; byte 2: memory address LSB
+                             97 ; byte 3: number of bytes to read
+   FED5 8D AD         [ 7]   98 readmem:	bsr	serrecv		;msb
+   FED7 1F 98         [ 6]   99 		tfr	b,a
+   FED9 8D A9         [ 7]  100 		bsr	serrecv		;lsb
+   FEDB 1F 01         [ 6]  101 		tfr	d,x		;address now in X
+   FEDD 8D A5         [ 7]  102 		bsr	serrecv
+   FEDF D7 52         [ 4]  103 		stb	*COUNT		;byte count
+   FEE1 E6 80         [ 6]  104 1$:		ldb	,x+		;get byte
+   FEE3 8D E5         [ 7]  105 		bsr	sersend		;send byte
+   FEE5 0A 52         [ 6]  106 		dec	*COUNT		;decrement count
+   FEE7 26 F8         [ 3]  107 		bne	1$
+   FEE9 16 FF 78      [ 5]  108 		lbra	monitorloop
+                            109 
+                            110 ; write bytes from the serial port to memory
+                            111 ; byte 1: memory address MSB
+                            112 ; byte 2: memory address LSB
+                            113 ; byte 3: number of bytes to write
+                            114 ; sends back 1 after all bytes written
+   FEEC 8D 96         [ 7]  115 writemem:	bsr	serrecv		;msb
+   FEEE 1F 98         [ 6]  116 		tfr	b,a
+   FEF0 8D 92         [ 7]  117 		bsr	serrecv		;lsb
+   FEF2 1F 01         [ 6]  118 		tfr	d,x		;address now in X
+   FEF4 8D 8E         [ 7]  119 		bsr	serrecv
+   FEF6 D7 52         [ 4]  120 		stb	*COUNT		;byte count
+   FEF8 8D 8A         [ 7]  121 1$:		bsr	serrecv		;get byte
+   FEFA E7 80         [ 6]  122 		stb	,x+		;store byte
+   FEFC 0A 52         [ 6]  123 		dec	*COUNT		;decrement count
+   FEFE 26 F8         [ 3]  124 		bne	1$
+   FF00 E1 1F         [ 5]  125 2$:		cmpb	-1,x		;wait until last write finishes
+   FF02 26 FC         [ 3]  126 		bne	2$		;  (for EEPROM programming)
+   FF04 F6 C4 04      [ 5]  127 		ldb	UART_MCR
+   FF07 C8 0C         [ 2]  128 		eorb	#0b1100		;flash LED yellow and print address
+   FF09 F7 C4 04      [ 5]  129 		stb	UART_MCR
+   FF0C CC 40 28      [ 3]  130 		ldd	#(VRAM|TEXT_NAMETABLE+40)
+   FF0F F7 CC 01      [ 5]  131 		stb	VDP_REG
+   FF12 B7 CC 01      [ 5]  132 		sta	VDP_REG
+   FF15 1F 10         [ 6]  133 		tfr	x,d
+   FF17 8D 3D         [ 7]  134 		bsr	mon_printhexw
+   FF19 C6 01         [ 2]  135 		ldb	#1		;send back 1 on success
+   FF1B 8D AD         [ 7]  136 		bsr	sersend
+   FF1D 16 FF 44      [ 5]  137 		lbra	monitorloop
+                            138 
+                            139 ; run starting at address, no registers are restored
+                            140 ; byte 1: memory address MSB
+                            141 ; byte 2: memory address LSB
+   FF20 17 FF 61      [ 9]  142 runtarget:	lbsr	serrecv		;msb
+   FF23 1F 98         [ 6]  143 		tfr	b,a
+   FF25 17 FF 5C      [ 9]  144 		lbsr	serrecv		;lsb
+   FF28 1F 05         [ 6]  145 		tfr	d,pc		;set new program counter
+                            146 
+                            147 ; relocate the monitor into RAM, so that the ROM may be overwritten
+                            148 ; sends back 1 on success
+   FF2A 8E FE 64      [ 3]  149 relocate:	ldx	#RELOC_START
+   FF2D CE 01 00      [ 3]  150 		ldu	#RELOC_DEST
+   FF30 EC 81         [ 8]  151 1$:		ldd	,x++
+   FF32 ED C1         [ 8]  152 		std	,u++
+   FF34 8C FF 76      [ 4]  153 		cmpx	#RELOC_END
+   FF37 25 F7         [ 3]  154 		blo	1$
+   FF39 C6 01         [ 2]  155 		ldb	#1
+   FF3B 8D 8D         [ 7]  156 		bsr	sersend
+   FF3D 7E 01 00      [ 4]  157 		jmp	RELOC_DEST	;jump to monitor loop in RAM
+                            158 
+                            159 ; return to the monitor in ROM
+   FF40 7E FE 64      [ 4]  160 romreturn:	jmp	monitorloop	;absolute jump to ROM
+                            161 
+                            162 
+                            163 ; relocatable copies of some text output routines
+   FF43 CC 40 00      [ 3]  164 mon_printstr:	ldd	#(VRAM|TEXT_NAMETABLE)	;always print at (0,0)
+   FF46 F7 CC 01      [ 5]  165 		stb	VDP_REG
+   FF49 B7 CC 01      [ 5]  166 		sta	VDP_REG
+   FF4C E6 80         [ 6]  167 1$:		ldb	,x+
+   FF4E 27 05         [ 3]  168 		beq	prdone
+   FF50 F7 CC 00      [ 5]  169 		stb	VDP_VRAM
+   FF53 20 F7         [ 3]  170 		bra	1$
+   FF55 39            [ 5]  171 prdone:		rts
+                            172 
+   FF56 34 04         [ 6]  173 mon_printhexw:	pshs	b		;save lsb
+   FF58 1F 89         [ 6]  174 		tfr	a,b
+   FF5A 8D 02         [ 7]  175 		bsr	mon_printhexb	;print msb
+   FF5C 35 04         [ 6]  176 		puls	b		;fall through, print lsb
+                            177 
+   FF5E 34 04         [ 6]  178 mon_printhexb:	pshs	b
+   FF60 54            [ 2]  179 		lsrb
+   FF61 54            [ 2]  180 		lsrb
+   FF62 54            [ 2]  181 		lsrb
+   FF63 54            [ 2]  182 		lsrb
+   FF64 8D 02         [ 7]  183 		bsr	mon_printhexd
+   FF66 35 04         [ 6]  184 		puls	b
+                            185 		;fall through and print lsd
+                            186 
+   FF68 C4 0F         [ 2]  187 mon_printhexd:	andb	#0b00001111	;lds only
+   FF6A CA 30         [ 2]  188 		orb	#'0
+   FF6C C1 3A         [ 2]  189 		cmpb	#'9+1		;decimal digit?
+   FF6E 25 02         [ 3]  190 		blo	mon_printd	;if so, print it
+   FF70 CB 07         [ 2]  191 		addb	#7		;no, add offset
+   FF72 F7 CC 00      [ 5]  192 mon_printd:	stb	VDP_VRAM	;print digit
+   FF75 39            [ 5]  193 		rts
+                            194 
+                            195 
+                            196 
+                            197 
+                     0000   198 	.if 0
+                            199 
+                            200 mon_printhexb:	tfr	b,a
+                            201 		lsrb
+                            202 		lsrb
+                            203 		lsrb
+                            204 		lsrb
+                            205 		anda	#0x0f
+                            206 		leau	monhexchars,pcr
+                            207 		ldb	b,u
+                            208 		stb	VDP_VRAM
+                            209 		ldb	a,u
+                            210 		stb	VDP_VRAM
+                            211 		rts
+                            212 monhexchars:	.fcc	"0123456789ABCDEF"
+                            213 		
+                            214 mon_printhexw:	pshs	b
+                            215 		tfr	a,b
+                            216 		bsr	mon_printhexb
+                            217 		puls	b
+                            218 		bra	mon_printhexb
+                            219 	.endif
+                            220 
+                            221 
+                     FF76   222 RELOC_END	.equ	.
+                     0112   223 RELOC_LEN	.equ	RELOC_END-RELOC_START
+                            224 
+   FF76 52 65 6D 6F 74 65   225 monreadystr:	.asciz	"Remote ready."
+        20 72 65 61 64 79
+        2E 00
+                             97 		;.include "monitor.asm"
+                             98 
+                             99 ;************ Strings ************
+   FF8B                     100 	.org 0xFF8B
+   FF8B 55 4C 54 49 4D 38   101 ultim809:	.asciz	"ULTIM809"
+        30 39 00
+   FF94 52 4F 4D 20 76 30   102 version:	.asciz	"ROM v0.6, 10 May 2011"
+        2E 36 2C 20 31 30
+        20 4D 61 79 20 32
+        30 31 31 00
+   FFAA 4B 42 20 52 41 4D   103 ramavail:	.asciz	"KB RAM available"
+        20 61 76 61 69 6C
+        61 62 6C 65 00
+   FFBB 50 72 65 73 73 20   104 monitorinst:	.asciz	"Press INTERRUPT for monitor"
+        49 4E 54 45 52 52
+        55 50 54 20 66 6F
+        72 20 6D 6F 6E 69
+        74 6F 72 00
+                            105 
+                            106 ;************ Interrupt handlers ************
+   FFD7 6E 9F 00 02   [ 8]  107 SWI3_HANDLER:	jmp	[SWI3VEC]
+   FFDB 6E 9F 00 04   [ 8]  108 SWI2_HANDLER:	jmp	[SWI2VEC]
+   FFDF 6E 9F 00 06   [ 8]  109 FIRQ_HANDLER:	jmp	[FIRQVEC]
+   FFE3 6E 9F 00 08   [ 8]  110 IRQ_HANDLER:	jmp	[IRQVEC]
+   FFE7 6E 9F 00 0A   [ 8]  111 SWI_HANDLER:	jmp	[SWIVEC]
+   FFEB 6E 9F 00 0C   [ 8]  112 NMI_HANDLER:	jmp	[NMIVEC]
+                            113 
+                            114 ; dummy interrupt handler does nothing
+   FFEF 3B            [15]  115 DUMMY_VECTOR::	rti
+                            116 
+                            117 ;************ Interrupt vectors **********
+   FFF0                     118 	.org 0xFFF0
+   FFF0 00 00               119 		.fdb	0x0000	;reserved
+   FFF2                     120 	.org 0xFFF2
+   FFF2 FF D7               121 		.fdb	SWI3_HANDLER
+   FFF4                     122 	.org 0xFFF4
+   FFF4 FF DB               123 		.fdb	SWI2_HANDLER
+   FFF6                     124 	.org 0xFFF6
+   FFF6 FF DF               125 		.fdb	FIRQ_HANDLER
+   FFF8                     126 	.org 0xFFF8
+   FFF8 FF E3               127 		.fdb	IRQ_HANDLER
+   FFFA                     128 	.org 0xFFFA
+   FFFA FF E7               129 		.fdb	SWI_HANDLER
+   FFFC                     130 	.org 0xFFFC
+   FFFC FF EB               131 		.fdb	NMI_HANDLER
+   FFFE                     132 	.org 0xFFFE
+   FFFE E0 00               133 RESET:		.fdb	MAIN
+ASxxxx Assembler V05.00  (Motorola 6809), page 1.
+Hexidecimal [16-Bits]
+
+Symbol Table
+
+    .__.$$$.       =   2710 L   |     .__.ABS.       =   0000 G
+    .__.CPU.       =   0000 L   |     .__.H$L.       =   0001 L
+    ANY_INT        =   0080 G   |     B115200        =   0100 G
+    B1200          =   6000 G   |     B150           =   0003 G
+    B19200         =   0600 G   |     B2400          =   1C00 G
+    B300           =   8001 G   |     B38400         =   0300 G
+    B4800          =   1800 G   |     B50            =   0009 G
+    B57600         =   0200 G   |     B600           =   C000 G
+    B7200          =   1000 G   |     B75            =   0006 G
+    B9600          =   0C00 G   |     BACKSPACECHAR  =   0008 G
+    BTN_A          =   0040 G   |     BTN_ANY        =   00F0 G
+    BTN_B          =   0010 G   |     BTN_C          =   0020 G
+    BTN_DOWN       =   0002 G   |     BTN_LEFT       =   0004 G
+    BTN_RIGHT      =   0008 G   |     BTN_START      =   0080 G
+    BTN_UP         =   0001 G   |     CA1_INT        =   0002 G
+    CA1_NEG        =   0000 G   |     CA1_POS        =   0001 G
+    CA2_INT        =   0001 G   |     CA2_IN_NEG     =   0000 G
+    CA2_IN_NEG_IND =   0002 G   |     CA2_IN_POS     =   0004 G
+    CA2_IN_POS_IND =   0006 G   |     CA2_OUT_HIGH   =   000E G
+    CA2_OUT_HS     =   0008 G   |     CA2_OUT_LOW    =   000C G
+    CA2_OUT_PULSE  =   000A G   |   0 CALCRAMSIZE        E035 GR
+    CB1_INT        =   0010 G   |     CB1_NEG        =   0000 G
+    CB1_POS        =   0010 G   |     CB2_INT        =   0008 G
+    CB2_IN_NEG     =   0000 G   |     CB2_IN_NEG_IND =   0020 G
+    CB2_IN_POS     =   0040 G   |     CB2_IN_POS_IND =   0060 G
+    CB2_OUT_HIGH   =   00E0 G   |     CB2_OUT_HS     =   0080 G
+    CB2_OUT_LOW    =   00C0 G   |     CB2_OUT_PULSE  =   00A0 G
+    COUNT          =   0052 G   |     CRCHAR         =   000D G
+    CTLR_CLR_SELEC =   CC06 G   |     CTLR_SET_SELEC =   CC0E G
+  0 CURSORPOS          0019 GR  |     DELETECHAR     =   007F G
+  0 DUMMY_VECTOR       FFEF GR  |     ENV_ENABLE     =   0010 G
+    ESC_CLRLINE    =   00FE G   |     ESC_CLRSCR     =   00FF G
+    EXTENDED_BIT   =   0002     |   0 FIRQVEC            0006 GR
+  0 FIRQ_HANDLER       FFDF R   |     FN_READ_MEM    =   00FE 
+    FN_ROMLD_DONE  =   00F2     |     FN_ROMLD_START =   00F3 
+    FN_RUN_TARGET  =   00FA     |     FN_WRITE_MEM   =   00FD 
+    IER_CLR        =   0000 G   |     IER_SET        =   0080 G
+  0 INCH               0010 GR  |     IO_AB_OUTPUTS  =   00C0 G
+    IO_A_OUTPUT    =   0040 G   |     IO_B_OUTPUT    =   0080 G
+  0 IRQVEC             0008 GR  |   0 IRQ_HANDLER        FFE3 R
+  0 KBD_BITSLEFT       001D GR  |   0 KBD_BUFEND     =   002F GR
+    KBD_BUFMASK    =   00EF G   |   0 KBD_BUFSTART       0020 GR
+  0 KBD_DECODE         E66B GR  |   0 KBD_ENABLE         E61E GR
+  0 KBD_GETCODE        E650 GR  |   0 KBD_HANDLER        E625 R
+  0 KBD_HEADPTR        0030 GR  |   0 KBD_HEADPTR_L      0031 GR
+  0 KBD_INCH           E9D5 GR  |   0 KBD_INIT           E5F6 GR
+  0 KBD_SAVE           001C GR  |   0 KBD_SCANCODE       001E GR
+  0 KBD_TAILPTR        0032 GR  |   0 KBD_TAILPTR_L      0033 GR
+  0 KEYSTATE           001B GR  |     KEY_UP_BIT     =   0001 
+    K_BRK          =   009A     |     K_CPL          =   0080 
+    K_DEL          =   0092     |     K_DN           =   008F 
+    K_END          =   0094     |     K_ESC          =   001B 
+    K_F1           =   0081     |     K_F10          =   008A 
+    K_F11          =   008B     |     K_F12          =   008C 
+    K_F2           =   0082     |     K_F3           =   0083 
+    K_F4           =   0084     |     K_F5           =   0085 
+    K_F6           =   0086     |     K_F7           =   0087 
+    K_F8           =   0088     |     K_F9           =   0089 
+    K_HOM          =   0093     |     K_INS          =   0091 
+    K_LF           =   008E     |     K_NML          =   0097 
+    K_PGD          =   0096     |     K_PGU          =   0095 
+    K_PRS          =   0099     |     K_RT           =   0090 
+    K_SCL          =   0098     |     K_UP           =   008D 
+  0 L                  0015 GR  |     LED_GREEN      =   0004 G
+    LED_OFF        =   000C G   |     LED_RED        =   0008 G
+    LED_YELLOW     =   0000 G   |   0 LH             =   0015 GR
+  0 LL             =   0017 GR  |     L_ALT_BIT      =   0008 
+    L_CTRL_BIT     =   0020     |     L_SHIFT_BIT    =   0080 
+  0 MAIN               E000 R   |     MONPAGE        =   0000 
+    MONSTART       =   FE40     |     MONSTKSTART    =   00FF 
+    MONVARSTART    =   0050     |     NLCHAR         =   000A G
+  0 NMIVEC             000C GR  |   0 NMI_HANDLER        FFEB R
+    NOISE_A        =   0030 G   |     NOISE_AB       =   0020 G
+    NOISE_ABC      =   0000 G   |     NOISE_AC       =   0010 G
+    NOISE_B        =   0028 G   |     NOISE_BC       =   0008 G
+    NOISE_C        =   0018 G   |     NOISE_NONE     =   0038 G
+  0 NUMRAMPAGES        0012 GR  |   0 OUTBCDB            E11A GR
+  0 OUTBCDW            E10B GR  |   0 OUTBS              E0C4 GR
+  0 OUTCH              000E GR  |   0 OUTHEXB            E0F3 GR
+  0 OUTHEXD            E0FD GR  |   0 OUTHEXW            E0EB GR
+  0 OUTNL              E0B2 GR  |   0 OUTSP              E0BE GR
+  0 OUTSTR             E0CA GR  |   0 OUTSTRN            E0DF GR
+  0 OUTSTRNL           E0D5 GR  |     PAGE           =   C001 G
+    PA_LATCH_OFF   =   0000 G   |     PA_LATCH_ON    =   0001 G
+    PB_LATCH_OFF   =   0000 G   |     PB_LATCH_ON    =   0002 G
+    PSG            =   CC02 G   |     PSG_A_AMPL     =   0008 G
+    PSG_A_FREQH    =   0001 G   |     PSG_A_FREQL    =   0000 G
+    PSG_B_AMPL     =   0009 G   |     PSG_B_FREQH    =   0003 G
+    PSG_B_FREQL    =   0002 G   |     PSG_CTRL       =   0007 G
+    PSG_C_AMPL     =   000A G   |     PSG_C_FREQH    =   0005 G
+    PSG_C_FREQL    =   0004 G   |     PSG_ENV_FREQH  =   000C G
+    PSG_ENV_FREQL  =   000B G   |     PSG_ENV_SHAPE  =   000D G
+    PSG_IO_A       =   000E G   |     PSG_IO_B       =   000F G
+    PSG_LATCH_ADDR =   CC02 G   |     PSG_NOISE_FREQ =   0006 G
+    PSG_READ_ADDR  =   CC02 G   |     PSG_WRITE_ADDR =   CC03 G
+    RAMEND         =   7FFF G   |     RAMSTART       =   0000 G
+  0 RAM_KB_BCD         0013 GR  |     RELOC_DEST     =   0100 
+  0 RELOC_END      =   FF76 R   |     RELOC_LEN      =   0112 
+  0 RELOC_START    =   FE64 R   |   0 REMOTEMONITOR      FE40 GR
+  0 RESET              FFFE R   |     ROMDP          =   0000 G
+    ROMSTART       =   E000 G   |     ROMSTKSTART    =   0040 G
+    R_ALT_BIT      =   0004     |     R_CTRL_BIT     =   0010 
+    R_SHIFT_BIT    =   0040     |     SR_INT         =   0004 G
+    SR_IN_EXT      =   000C G   |     SR_IN_PHI2     =   0008 G
+    SR_IN_T2       =   0004 G   |     SR_OFF         =   0000 G
+    SR_OUT_EXT     =   001C G   |     SR_OUT_PHI2    =   0018 G
+    SR_OUT_T2      =   0014 G   |     SR_OUT_T2_FREE =   0010 G
+    STACKFRAME     =   0050     |   0 STARTUP            EA60 GR
+    STKSTART       =   7FFF G   |   0 SWI2VEC            0004 GR
+  0 SWI2_HANDLER       FFDB R   |   0 SWI3VEC            0002 GR
+  0 SWI3_HANDLER       FFD7 R   |   0 SWIVEC             000A GR
+  0 SWI_HANDLER        FFE7 R   |     SYSRAM         =   0002 G
+    T1_INT         =   0040 G   |     T1_INT_CONT    =   0040 G
+    T1_INT_CONT_SQ =   00C0 G   |     T1_INT_TIMED   =   0000 G
+    T1_INT_TIMED_1 =   0080 G   |     T2_COUNT_PB6   =   0020 G
+    T2_INT         =   0020 G   |     T2_INT_TIMED   =   0000 G
+  0 TEXTFONT           E1F6 GR  |   0 TEXTFONT_END   =   E5F6 R
+  0 TEXT_CLEAR         E88E GR  |   0 TEXT_CLRCURLN      E98F GR
+  0 TEXT_CLRLINE       E98D GR  |   0 TEXT_CONSOLE       E853 GR
+    TEXT_NAMETABLE =   0000     |   0 TEXT_OUTCH         E8A8 GR
+    TEXT_PATTABLE  =   0800     |     TEXT_REG_1     =   0090 
+  0 TEXT_SETCOL        E9C7 GR  |   0 TEXT_SETLINE       E9BA GR
+    TONE_A         =   0006 G   |     TONE_AB        =   0004 G
+    TONE_ABC       =   0000 G   |     TONE_AC        =   0002 G
+    TONE_B         =   0005 G   |     TONE_BC        =   0001 G
+    TONE_C         =   0003 G   |     TONE_NONE      =   0007 G
+    UART           =   C400 G   |     UART_DLL       =   C400 G
+    UART_DLM       =   C401 G   |     UART_FCR       =   C402 G
+    UART_IER       =   C401 G   |   0 UART_INCH          E0A7 GR
+  0 UART_INIT          E070 GR  |   0 UART_IO            E089 GR
+    UART_ISR       =   C402 G   |     UART_LCR       =   C403 G
+    UART_LSR       =   C405 G   |     UART_MCR       =   C404 G
+    UART_MSR       =   C406 G   |   0 UART_OUTCH         E098 GR
+  0 UART_OUTCH_NW      E0A3 GR  |     UART_RHR       =   C400 G
+  0 UART_SETLED        E094 GR  |     UART_SPR       =   C407 G
+    UART_THR       =   C400 G   |     USERPROG_ORG   =   0100 G
+    VBANK_LOWER    =   CC04 G   |     VBANK_UPPER    =   CC0C G
+    VDP            =   CC00 G   |   0 VDP_CLEAR          E120 GR
+  0 VDP_FILL           E131 GR  |   0 VDP_INITTEXT       E13C GR
+  0 VDP_LOADIPATS      E18F GR  |   0 VDP_LOADPATS       E163 GR
+  0 VDP_OUTCH          E1E0 GR  |   0 VDP_PRINTPSTR      E1C3 GR
+  0 VDP_PRINTSTR       E1C5 GR  |   0 VDP_PRINTSTRC      E1CD GR
+    VDP_REG        =   CC01 G   |   0 VDP_SETADDR        E1D7 GR
+  0 VDP_SET_REGS       E154 GR  |   0 VDP_TEXT_ON        E1E4 GR
+    VDP_VRAM       =   CC00 G   |     VIA            =   C000 G
+    VIA_ACR        =   C00B G   |     VIA_DDRA       =   C003 G
+    VIA_DDRA_D     =   0003     |     VIA_DDRB       =   C002 G
+    VIA_DDRB_D     =   0002     |     VIA_IER        =   C00E G
+    VIA_IFR        =   C00D G   |     VIA_IRA        =   C001 G
+    VIA_IRA_D      =   0001     |     VIA_IRB        =   C000 G
+    VIA_IRB_D      =   0000     |     VIA_L          =   0000 
+    VIA_ORA        =   C001 G   |     VIA_ORA_D      =   0001 
+    VIA_ORB        =   C000 G   |     VIA_ORB_D      =   0000 
+    VIA_PAGE       =   00C0     |     VIA_PCR        =   C00C G
+    VIA_SR         =   C00A G   |     VIA_T1CH       =   C005 G
+    VIA_T1CL       =   C004 G   |     VIA_T1LH       =   C007 G
+    VIA_T1LL       =   C006 G   |     VIA_T2CH       =   C009 G
+    VIA_T2CL       =   C008 G   |     VRAM           =   4000 G
+    XRAMEND        =   BFFF G   |     XRAMSTART      =   8000 G
+  0 __text_setpos      E9A2 R   |   0 _text_cr           E8ED R
+  0 _text_lf           E8D0 R   |   0 _text_setpos       E8DB R
+  0 altpress           E6DB R   |   0 altrelease         E6A9 R
+  0 bufempty           E669 R   |   0 clear_line         E9AF R
+  0 cmderror           FEC3 R   |   0 cmderrorstr        FEB6 R
+  0 code_table         E71B R   |   0 controlcode        E717 R
+  0 countdone          E065 R   |   0 countpages         E04B R
+  0 ctrlpress          E6CF R   |   0 ctrlrelease        E69D R
+  0 cursor_invert      E90F R   |   0 done               E033 R
+  0 extended           E67D R   |   0 extended_table     E81B R
+  0 fill_loop          E133 R   |   0 getcodedone        E668 R
+  0 getkey             E9D7 R   |   0 kbh_done           E638 R
+  0 kbh_stopbit        E639 R   |   0 keylookup          E704 R
+  0 keypress           E6B5 R   |   0 keypressdone       E712 R
+  0 keyrelease         E681 R   |   0 keyup              E679 R
+  0 linenumbers        E9E8 R   |   0 lshiftpress        E6C7 R
+  0 lshiftrelease      E695 R   |   0 moddone            E6E5 R
+  0 mon_printd         FF72 R   |   0 mon_printhexb      FF5E R
+  0 mon_printhexd      FF68 R   |   0 mon_printhexw      FF56 R
+  0 mon_printstr       FF43 R   |   0 monitorinst        FFBB R
+  0 monitorloop        FE64 R   |   0 monreadystr        FF76 R
+  0 not_f7             E70C R   |   0 osdone             E0D4 R
+  0 otherpress         E6E9 R   |   0 outhexw2           E0F1 R
+  0 oxdprint           E107 R   |   0 prdone             FF55 R
+  0 printerror         FEA7 R   |   0 raltpress          E6E3 R
+  0 raltrelease        E6B1 R   |   0 ramavail           FFAA R
+  0 rctrlpress         E6D7 R   |   0 rctrlrelease       E6A5 R
+  0 readmem            FED5 R   |   0 relocate           FF2A R
+  0 romreturn          FF40 R   |   0 rshiftpress        E6CB R
+  0 rshiftrelease      E699 R   |   0 runtarget          FF20 R
+  0 sererror           FEA2 R   |   0 sererrorstr        FE93 R
+  0 serrecv            FE84 R   |   0 sersend            FECA R
+  0 sersendcheck       FECC R   |   0 shift_table        E79B R
+  0 text_backspace     E904 R   |   0 text_clear         E890 R
+  0 text_cr            E8E9 R   |   0 text_crlf          E900 R
+  0 text_grabline      E947 R   |   0 text_lf            E8CC R
+  0 text_moveline      E95C R   |   0 text_nop           E8CA R
+  0 text_scrollup      E93B R   |   0 text_setpos        E8D3 R
+  0 text_vdp_regs      E1EE R   |   0 ultim809           FF8B R
+  0 useextended        E6F8 R   |   0 useshift           E701 R
+  0 vdpwrite           E1D9 R   |   0 version            FF94 R
+  0 vpdone             E1D6 R   |   0 writemem           FEEC R
+
+ASxxxx Assembler V05.00  (Motorola 6809), page 2.
+Hexidecimal [16-Bits]
+
+Area Table
+
+[_CSEG]
+   0 _CODE            size    0   flags C988
+[_DSEG]
+   1 _DATA            size    0   flags C0C0
+

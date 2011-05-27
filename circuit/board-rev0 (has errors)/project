@@ -1,0 +1,3 @@
+schematics ultim809.sch
+output-name testpcb/ultim809
+elements-dir ../footprints

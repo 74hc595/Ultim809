@@ -1,0 +1,30 @@
+Board Rev 0 Errors
+==================
+- Remove stray trace on back under PS/2 port
+- Reroute EXTIOSEL so it doesn't go under the audio port
+- Move X2 to the right so the crystal case doesn't touch the resistors
+- Make chip labels bigger
+- Move video/audio plugs closer to the board edge
+- TSC on U4 should connect to GND
+- TX and RX are swapped
+- NMI should be debounced:
+
++5v
+ |  10k
+ +-/\/\/\-+    U6                             ___
+          |    |\                 /---------- NMI
+    ___   |  13| \ 12   10k     |/
+ +-o   o--+----|S >O---/\/\/\---|  2N2222
+ |        |    | /              |\
+ =       ---   |/                 \
+         ---                      |
+          |                       =
+          =
+
+- CSW and CSR are swapped:
+  U17 pin 11 should connect to U21 pin 15
+  U17 pin 10 shoudl connect to U21 pin 14
+  
+- VRAM bus is seriously messed up.
+	AD0-AD6 are connected to the flip-flops.
+	Instead, AD1-AD7 should be connected.

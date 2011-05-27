@@ -1,0 +1,502 @@
+                              1 ; vim:noet:sw=8:ts=8:ai:syn=as6809
+                              2 ; Matt Sarnoff (msarnoff.org/6809) - November 13, 2010
+                              3 ;
+                              4 ; TMS9918 text mode "hello world"
+                              5 ; Adapted from sample code on the N8VEM website
+                              6 
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                             10 	.list
+                             11 
+                             12 	.area	_CODE(ABS)
+   0100                      13 	.org	USERPROG_ORG
+   0100 10 CE 80 00   [ 4]   14 		lds	#RAMEND+1	;set up stack pointer
+                             15 
+   0104 C6 04         [ 2]   16 		ldb	#LED_GREEN
+   0106 BD E0 94      [ 8]   17 		jsr	UART_SETLED
+                             18 
+   0109 BD E1 3C      [ 8]   19 		jsr	VDP_INITTEXT
+                             20 
+                             21 ;copy character set to VRAM at 0x0800
+   010C CC 48 00      [ 3]   22 		ldd	#(VRAM|0x0800)	;write VRAM address
+   010F F7 CC 01      [ 5]   23 		stb	VDP_REG		;low byte first
+   0112 B7 CC 01      [ 5]   24 		sta	VDP_REG		;then high byte
+                             25 
+   0115 8E E1 F6      [ 3]   26 		ldx	#TEXTFONT	;copy 128 characters of font
+   0118 C6 80         [ 2]   27 		ldb	#128
+   011A BD E1 63      [ 8]   28 		jsr	VDP_LOADPATS
+                             29 		;ldx	#TEXTFONT	;copy inverse video characters
+                             30 		;ldb	#128
+                             31 		;jsr	VDP_LOADIPATS
+                             32 
+                             33 
+                             34 ; print some strings
+   011D CC 00 00      [ 3]   35 		ldd	#0x0000		;line 1
+   0120 8E 01 54      [ 3]   36 		ldx	#str1
+   0123 BD E1 C5      [ 8]   37 		jsr	VDP_PRINTSTR
+   0126 CC 00 28      [ 3]   38 		ldd	#0x0028		;line 2
+   0129 BD E1 C5      [ 8]   39 		jsr	VDP_PRINTSTR
+   012C CC 00 50      [ 3]   40 		ldd	#0x0050		;line 3
+   012F BD E1 C5      [ 8]   41 		jsr	VDP_PRINTSTR
+   0132 CC 00 78      [ 3]   42 		ldd	#0x0078		;line 4
+   0135 BD E1 C5      [ 8]   43 		jsr	VDP_PRINTSTR
+                             44 
+                             45 
+                             46 ; then the full character set
+   0138 CC 40 C8      [ 3]   47 		ldd	#(VRAM|0x00C8)	;line 6
+   013B F7 CC 01      [ 5]   48 		stb	VDP_REG
+   013E B7 CC 01      [ 5]   49 		sta	VDP_REG
+                             50 		
+   0141 C6 80         [ 2]   51 		ldb	#128
+   0143 F7 CC 00      [ 5]   52 1$:		stb	VDP_VRAM
+   0146 5C            [ 2]   53 		incb
+   0147 26 FA         [ 3]   54 		bne	1$
+                             55 
+                             56 ; turn on the display
+   0149 CC D0 81      [ 3]   57 		ldd	#0xD081		;set bit 6 of register 1
+   014C B7 CC 01      [ 5]   58 		sta	VDP_REG
+   014F F7 CC 01      [ 5]   59 		stb	VDP_REG
+                             60 
+                             61 
+                             62 ; aaaaaand we're done
+   0152 20 FE         [ 3]   63 		bra	.
+                             64 
+                             65 
+                             66 ; strings
+   0154 55 6C 74 69 6D 38    67 str1:		.asciz	"Ultim809 8-Bit Computer"
+        30 39 20 38 2D 42
+        69 74 20 43 6F 6D
+        70 75 74 65 72 00
+   016C 42 79 20 4D 61 74    68 str2:		.asciz	"By Matt Sarnoff"
+        74 20 53 61 72 6E
+        6F 66 66 00
+   017C 77 77 77 2E 6D 73    69 str3:		.asciz	"www.msarnoff.org"
+        61 72 6E 6F 66 66
+        2E 6F 72 67 00
+   018D 4E 6F 76 65 6D 62    70 str4:		.asciz	"November 14, 2010"
+        65 72 20 31 34 2C
+        20 32 30 31 30 00
+                             71 
+                             72 

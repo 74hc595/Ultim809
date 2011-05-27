@@ -1,0 +1,703 @@
+ASxxxx Assembler V05.00  (Motorola 6809), page 1.
+Hexidecimal [16-Bits]
+
+Symbol Table
+
+    .__.$$$.                                                =   2710 L
+    .__.ABS.                                                =   0000 G
+    .__.CPU.                                                =   0000 L
+    .__.H$L.                                                =   0001 L
+    ANY_INT                                                 =   0080 G
+  0 ASTEROIDS                                                   1723 R
+  0 ASTEROIDS_END                                           =   18D3 R
+    ASTEROIDS_LEFT                                          =   008F 
+  0 AST_DIRECTIONS                                              159B R
+  0 AST_INIT                                                    0596 GR
+    AST_LG_SIZE                                             =   0010 
+    AST_MED_SIZE                                            =   000C 
+  0 AST_NEW                                                     0517 GR
+  0 AST_NEW_SET                                                 052E GR
+  0 AST_POSITIONS                                               161B R
+    AST_SM_SIZE                                             =   0008 
+  0 AST_SPLIT                                                   0549 GR
+    ATTRACTMODE                                             =   0084 
+    B115200                                                 =   0100 G
+    B1200                                                   =   6000 G
+    B150                                                    =   0003 G
+    B19200                                                  =   0600 G
+    B2400                                                   =   1C00 G
+    B300                                                    =   8001 G
+    B38400                                                  =   0300 G
+    B4800                                                   =   1800 G
+    B50                                                     =   0009 G
+    B57600                                                  =   0200 G
+    B600                                                    =   C000 G
+    B7200                                                   =   1000 G
+    B75                                                     =   0006 G
+    B9600                                                   =   0C00 G
+    BACKSPACECHAR                                           =   0008 G
+  0 BCD_TO_ASCII                                                04CE GR
+    BGSOUND_BITS                                            =   00A2 
+    BTN_A                                                   =   0040 G
+    BTN_ANY                                                 =   00F0 G
+    BTN_B                                                   =   0010 G
+    BTN_C                                                   =   0020 G
+    BTN_DOWN                                                =   0002 G
+    BTN_LEFT                                                =   0004 G
+    BTN_RIGHT                                               =   0008 G
+    BTN_START                                               =   0080 G
+    BTN_UP                                                  =   0001 G
+  0 BULLETS                                                 =   16C3 R
+  0 BULLETS_END                                             =   170B R
+  0 BULLETS_INIT                                                06DB GR
+  0 BULLET_COLL                                                 073D GR
+    CA1_INT                                                 =   0002 G
+    CA1_NEG                                                 =   0000 G
+    CA1_POS                                                 =   0001 G
+    CA2_INT                                                 =   0001 G
+    CA2_IN_NEG                                              =   0000 G
+    CA2_IN_NEG_IND                                          =   0002 G
+    CA2_IN_POS                                              =   0004 G
+ASxxxx Assembler V05.00  (Motorola 6809), page 2.
+Hexidecimal [16-Bits]
+
+Symbol Table
+
+    CA2_IN_POS_IND                                          =   0006 G
+    CA2_OUT_HIGH                                            =   000E G
+    CA2_OUT_HS                                              =   0008 G
+    CA2_OUT_LOW                                             =   000C G
+    CA2_OUT_PULSE                                           =   000A G
+    CALCRAMSIZE                                             =   E035 G
+    CB1_INT                                                 =   0010 G
+    CB1_NEG                                                 =   0000 G
+    CB1_POS                                                 =   0010 G
+    CB2_INT                                                 =   0008 G
+    CB2_IN_NEG                                              =   0000 G
+    CB2_IN_NEG_IND                                          =   0020 G
+    CB2_IN_POS                                              =   0040 G
+    CB2_IN_POS_IND                                          =   0060 G
+    CB2_OUT_HIGH                                            =   00E0 G
+    CB2_OUT_HS                                              =   0080 G
+    CB2_OUT_LOW                                             =   00C0 G
+    CB2_OUT_PULSE                                           =   00A0 G
+  0 CHECK_TIMERS                                                022F R
+  0 CLR_ASTEROIDS                                               0503 GR
+  0 CLR_OBJECTS                                                 0512 R
+    COLORTABLE                                              =   2000 
+    COS_0                                                   =   0100 
+    COS_101_25                                              =   FFCE 
+    COS_112_5                                               =   FF9E 
+    COS_11_25                                               =   00FB 
+    COS_123_75                                              =   FF72 
+    COS_135                                                 =   FF4B 
+    COS_146_25                                              =   FF2B 
+    COS_157_5                                               =   FF13 
+    COS_168_75                                              =   FF05 
+    COS_180                                                 =   FF00 
+    COS_191_25                                              =   FF05 
+    COS_202_5                                               =   FF13 
+    COS_213_75                                              =   FF2B 
+    COS_218_25                                              =   0032 
+    COS_225                                                 =   FF4B 
+    COS_22_5                                                =   00ED 
+    COS_236_25                                              =   FF72 
+    COS_247_5                                               =   FF9E 
+    COS_258_75                                              =   FFCE 
+    COS_270                                                 =   0000 
+    COS_292_5                                               =   0062 
+    COS_303_75                                              =   008E 
+    COS_315                                                 =   00B5 
+    COS_326_25                                              =   00D5 
+    COS_337_5                                               =   00ED 
+    COS_33_75                                               =   00D5 
+    COS_348_75                                              =   00FB 
+    COS_45                                                  =   00B5 
+    COS_56_25                                               =   008E 
+    COS_67_5                                                =   0062 
+    COS_78_75                                               =   0032 
+    COS_90                                                  =   0000 
+    COUNT                                                   =   0052 G
+ASxxxx Assembler V05.00  (Motorola 6809), page 3.
+Hexidecimal [16-Bits]
+
+Symbol Table
+
+    CRCHAR                                                  =   000D G
+    CTLR_CLR_SELECT                                         =   CC06 G
+    CTLR_SET_SELECT                                         =   CC0E G
+    CURSORPOS                                               =   0019 G
+  0 DECELERATE                                                  03C4 R
+    DELETECHAR                                              =   007F G
+    DISPLAY_ACTION                                          =   009D 
+    DUMMY_VECTOR                                            =   FFEF G
+    ENV_ENABLE                                              =   0010 G
+    ERROR_MSG_PTR                                           =   00A3 
+    ESC_CLRLINE                                             =   00FE G
+    ESC_CLRSCR                                              =   00FF G
+    EXPLOSION_SIZE                                          =   0010 
+    EXTRA_LIFE_AMT                                          =   0010 
+  0 FIRE_BULLET                                                 070B GR
+    FIRQVEC                                                 =   0006 G
+    FRAMECOUNTER                                            =   0090 
+  0 GAME_INPUT                                                  020A R
+  0 GET_BULLET                                                  06E8 GR
+  0 GET_SCRBULLET                                               06FB GR
+    HYPERSPACE                                              =   0098 
+    IER_CLR                                                 =   0000 G
+    IER_SET                                                 =   0080 G
+    INCH                                                    =   0010 G
+    IO_AB_OUTPUTS                                           =   00C0 G
+    IO_A_OUTPUT                                             =   0040 G
+    IO_B_OUTPUT                                             =   0080 G
+    IRQVEC                                                  =   0008 G
+    KBD_BITSLEFT                                            =   001D G
+    KBD_BUFEND                                              =   002F G
+    KBD_BUFMASK                                             =   00EF G
+    KBD_BUFSTART                                            =   0020 G
+    KBD_DECODE                                              =   E66B G
+    KBD_ENABLE                                              =   E61E G
+    KBD_GETCODE                                             =   E650 G
+    KBD_HEADPTR                                             =   0030 G
+    KBD_HEADPTR_L                                           =   0031 G
+    KBD_INCH                                                =   E9D5 G
+    KBD_INIT                                                =   E5F6 G
+    KBD_SAVE                                                =   001C G
+    KBD_SCANCODE                                            =   001E G
+    KBD_TAILPTR                                             =   0032 G
+    KBD_TAILPTR_L                                           =   0033 G
+    KEYSTATE                                                =   001B G
+    L                                                       =   0015 G
+  0 LARGESAUCER                                                 169D R
+    LARGE_SAUCERS                                           =   009B 
+    LED_GREEN                                               =   0004 G
+    LED_OFF                                                 =   000C G
+    LED_RED                                                 =   0008 G
+    LED_YELLOW                                              =   0000 G
+    LH                                                      =   0015 G
+  0 LIFESND_OFF                                                 0969 GR
+  0 LIFESND_ON                                                  095E GR
+    LIFESND_TIMER                                           =   008D 
+ASxxxx Assembler V05.00  (Motorola 6809), page 4.
+Hexidecimal [16-Bits]
+
+Symbol Table
+
+    LIVES                                                   =   0087 
+    LL                                                      =   0017 G
+    MAX_LG_ASTS                                             =   0006 
+  0 MUTE                                                        165B R
+    NAMETABLE                                               =   1400 
+  0 NEW_GAME                                                    04DA GR
+    NEW_LEVEL_TIMER                                         =   008A 
+    NEXT_AST_PTR                                            =   0095 
+    NEXT_LG_SAUCERS                                         =   009C 
+    NEXT_LIFE_AT                                            =   0088 
+    NEXT_SAUCER_INT                                         =   009A 
+    NLCHAR                                                  =   000A G
+    NMIVEC                                                  =   000C G
+    NOISE_A                                                 =   0030 G
+    NOISE_AB                                                =   0020 G
+    NOISE_ABC                                               =   0000 G
+    NOISE_AC                                                =   0010 G
+    NOISE_B                                                 =   0028 G
+    NOISE_BC                                                =   0008 G
+    NOISE_C                                                 =   0018 G
+    NOISE_NONE                                              =   0038 G
+    NUMRAMPAGES                                             =   0012 G
+    NUM_ASTEROIDS                                           =   0024 
+    NUM_SCRBULLETS                                          =   0002 
+    NUM_SHIPBULLETS                                         =   0004 
+  0 OBJECTS                                                 =   16C3 R
+  0 OBJECTS_END                                             =   18D3 R
+  0 OBJ_BOUNDSCHK                                               038A R
+  0 OBJ_KILL                                                    079D GR
+  0 OBJ_MOVE                                                    037D R
+  0 OBJ_OBJ_COLL                                                0765 GR
+  0 OBJ_SCORE                                                   080B GR
+    OBJ_SIZE                                                =   000C 
+  0 OBJ_UPDATELIFE                                              03AB R
+    OUTBCDB                                                 =   E11A G
+    OUTBCDW                                                 =   E10B G
+    OUTBS                                                   =   E0C4 G
+    OUTCH                                                   =   000E G
+    OUTHEXB                                                 =   E0F3 G
+    OUTHEXD                                                 =   E0FD G
+    OUTHEXW                                                 =   E0EB G
+    OUTNL                                                   =   E0B2 G
+    OUTSP                                                   =   E0BE G
+    OUTSTR                                                  =   E0CA G
+    OUTSTRN                                                 =   E0DF G
+    OUTSTRNL                                                =   E0D5 G
+    PAD1STATE                                               =   0091 
+    PAD2STATE                                               =   0092 
+    PAGE                                                    =   C001 G
+    PATTABLE                                                =   0800 
+    PA_LATCH_OFF                                            =   0000 G
+    PA_LATCH_ON                                             =   0001 G
+    PB_LATCH_OFF                                            =   0000 G
+    PB_LATCH_ON                                             =   0002 G
+  0 PLAYERSHIP                                                  170B R
+ASxxxx Assembler V05.00  (Motorola 6809), page 5.
+Hexidecimal [16-Bits]
+
+Symbol Table
+
+    PREVPAD1STATE                                           =   0093 
+    PREVPAD2STATE                                           =   0094 
+    PSG                                                     =   CC02 G
+    PSG_A_AMPL                                              =   0008 G
+    PSG_A_FREQH                                             =   0001 G
+    PSG_A_FREQL                                             =   0000 G
+    PSG_B_AMPL                                              =   0009 G
+    PSG_B_FREQH                                             =   0003 G
+    PSG_B_FREQL                                             =   0002 G
+    PSG_CTRL                                                =   0007 G
+    PSG_C_AMPL                                              =   000A G
+    PSG_C_FREQH                                             =   0005 G
+    PSG_C_FREQL                                             =   0004 G
+    PSG_ENV_FREQH                                           =   000C G
+    PSG_ENV_FREQL                                           =   000B G
+    PSG_ENV_SHAPE                                           =   000D G
+    PSG_IO_A                                                =   000E G
+    PSG_IO_B                                                =   000F G
+    PSG_LATCH_ADDR                                          =   CC02 G
+    PSG_NOISE_FREQ                                          =   0006 G
+  0 PSG_READ                                                    0A1C GR
+    PSG_READ_ADDR                                           =   CC02 G
+  0 PSG_SET_AFREQ                                               0A23 GR
+  0 PSG_SET_BFREQ                                               0A31 GR
+  0 PSG_SET_CFREQ                                               0A3F GR
+  0 PSG_SET_EFREQ                                               0A4D GR
+  0 PSG_SILENCE                                                 0A11 GR
+  0 PSG_WRITE                                                   0A18 GR
+    PSG_WRITE_ADDR                                          =   CC03 G
+    RAMEND                                                  =   7FFF G
+    RAMSTART                                                =   0000 G
+    RAM_KB_BCD                                              =   0013 G
+  0 RANDBIT                                                     0999 GR
+  0 RANDBYTE                                                    09BF GR
+  0 RANDBYTERANGE                                               09E3 GR
+  0 RANDSEED                                                    0A0D R
+  0 READ_1BUTTON                                                0A5B GR
+  0 READ_3BUTTON                                                0A75 GR
+    REMOTEMONITOR                                           =   FE40 G
+    RESPAWN_TIMER                                           =   0089 
+    ROMDP                                                   =   0000 G
+    ROMSTART                                                =   E000 G
+    ROMSTKSTART                                             =   0040 G
+  0 SAUCER                                                      1717 R
+  0 SAUCERBULLETS                                               16F3 R
+  0 SAUCERFIRE                                                  167B R
+    SAUCERSNDPTR                                            =   00A0 
+  0 SAUCERSND_OFF                                               0977 GR
+  0 SAUCERSND_ON                                                0970 GR
+  0 SAUCER_ACTION                                               066A R
+  0 SAUCER_INIT                                                 061C R
+    SAUCER_LG_SIZE                                          =   000E 
+  0 SAUCER_NEXT                                                 069E R
+    SAUCER_SM_SIZE                                          =   000A 
+    SAUCER_TIMER                                            =   0099 
+ASxxxx Assembler V05.00  (Motorola 6809), page 6.
+Hexidecimal [16-Bits]
+
+Symbol Table
+
+    SCORE                                                   =   0085 
+    SCORE_LSB                                               =   0086 
+    SCORE_MSB                                               =   0085 
+  0 SCRBULLETS_END                                          =   170B R
+  0 SETNUMSPRITES                                               0889 GR
+  0 SETRANDOMSEED                                               098C GR
+  0 SETSPRITE                                                   0868 GR
+    SHIPANGLE                                               =   0097 
+  0 SHIPBULLETS                                                 16C3 R
+  0 SHIPBULLETS_END                                         =   16F3 R
+  0 SHIPFIRE                                                    165D R
+  0 SHIPS_END                                               =   1723 R
+  0 SHIP_CAN_SPAWN                                              06AF R
+  0 SHIP_INIT                                                   05D1 GR
+    SHIP_SIZE                                               =   0010 
+    SIN_0                                                   =   0000 
+    SIN_101_25                                              =   FF05 
+    SIN_112_5                                               =   FF13 
+    SIN_11_25                                               =   FFCE 
+    SIN_123_75                                              =   FF2B 
+    SIN_135                                                 =   FF4B 
+    SIN_146_25                                              =   FF72 
+    SIN_157_5                                               =   FF9E 
+    SIN_168_75                                              =   FFCE 
+    SIN_180                                                 =   0000 
+    SIN_191_25                                              =   0032 
+    SIN_202_5                                               =   0062 
+    SIN_213_75                                              =   008E 
+    SIN_218_25                                              =   00FB 
+    SIN_225                                                 =   00B5 
+    SIN_22_5                                                =   FF9E 
+    SIN_236_25                                              =   00D5 
+    SIN_247_5                                               =   00ED 
+    SIN_258_75                                              =   00FB 
+    SIN_270                                                 =   0100 
+    SIN_292_5                                               =   00ED 
+    SIN_303_75                                              =   00D5 
+    SIN_315                                                 =   00B5 
+    SIN_326_25                                              =   008E 
+    SIN_337_5                                               =   0062 
+    SIN_33_75                                               =   FF72 
+    SIN_348_75                                              =   0032 
+    SIN_45                                                  =   FF4B 
+    SIN_56_25                                               =   FF2B 
+    SIN_67_5                                                =   FF13 
+    SIN_78_75                                               =   FF05 
+    SIN_90                                                  =   FF00 
+  0 SMALLSAUCER                                                 16B3 R
+    SNDPTR                                                  =   009E 
+  0 SND_EXPLODE                                                 097E GR
+  0 SND_UPDATE                                                  089F GR
+    SPRATTABLE                                              =   1000 
+  0 SPRITEPATS                                                  0B1B R
+  0 SPRITEPATS_END                                          =   131B R
+    SPRPATTABLE                                             =   0000 
+ASxxxx Assembler V05.00  (Motorola 6809), page 7.
+Hexidecimal [16-Bits]
+
+Symbol Table
+
+    SPR_AST1_LG                                             =   0000 
+    SPR_AST1_MED                                            =   0010 
+    SPR_AST1_SM                                             =   0020 
+    SPR_AST2_LG                                             =   0004 
+    SPR_AST2_MED                                            =   0014 
+    SPR_AST2_SM                                             =   0024 
+    SPR_AST3_LG                                             =   0008 
+    SPR_AST3_MED                                            =   0018 
+    SPR_AST3_SM                                             =   0028 
+    SPR_AST4_LG                                             =   000C 
+    SPR_AST4_MED                                            =   001C 
+    SPR_AST4_SM                                             =   002C 
+    SPR_BULLET                                              =   0038 
+    SPR_EXPL1_START                                         =   00C0 
+    SPR_EXPL2_START                                         =   00D0 
+    SPR_SAUCER_LG                                           =   0030 
+    SPR_SAUCER_SM                                           =   0034 
+    SPR_SHIP                                                =   0040 
+    SR_INT                                                  =   0004 G
+    SR_IN_EXT                                               =   000C G
+    SR_IN_PHI2                                              =   0008 G
+    SR_IN_T2                                                =   0004 G
+    SR_OFF                                                  =   0000 G
+    SR_OUT_EXT                                              =   001C G
+    SR_OUT_PHI2                                             =   0018 G
+    SR_OUT_T2                                               =   0014 G
+    SR_OUT_T2_FREE                                          =   0010 G
+    STARTUP                                                 =   EA60 G
+    START_ASTEROIDS                                         =   008E 
+    STKSTART                                                =   7FFF G
+    SWI2VEC                                                 =   0004 G
+    SWI3VEC                                                 =   0002 G
+    SWIVEC                                                  =   000A G
+    SYSRAM                                                  =   0002 G
+    T1_INT                                                  =   0040 G
+    T1_INT_CONT                                             =   0040 G
+    T1_INT_CONT_SQ                                          =   00C0 G
+    T1_INT_TIMED                                            =   0000 G
+    T1_INT_TIMED_1S                                         =   0080 G
+    T2_COUNT_PB6                                            =   0020 G
+    T2_INT                                                  =   0020 G
+    T2_INT_TIMED                                            =   0000 G
+    TEMP1                                                   =   0080 
+    TEMP2                                                   =   0081 
+    TEMP3                                                   =   0082 
+    TEMP4                                                   =   0083 
+    TEXTFONT                                                =   E1F6 G
+  0 TEXTPATS                                                    131B R
+  0 TEXTPATS_END                                            =   151B R
+    TEXT_CLEAR                                              =   E88E G
+    TEXT_CLRCURLN                                           =   E98F G
+    TEXT_CLRLINE                                            =   E98D G
+    TEXT_CONSOLE                                            =   E853 G
+    TEXT_OUTCH                                              =   E8A8 G
+    TEXT_SETCOL                                             =   E9C7 G
+ASxxxx Assembler V05.00  (Motorola 6809), page 8.
+Hexidecimal [16-Bits]
+
+Symbol Table
+
+    TEXT_SETLINE                                            =   E9BA G
+  0 THRUSTSND_OFF                                               093F GR
+  0 THRUSTSND_ON                                                0938 GR
+  0 THUMPSND_OFF                                                0957 GR
+  0 THUMPSND_ON                                                 0946 GR
+    THUMP_PITCH                                             =   008C 
+    THUMP_TIMER                                             =   008B 
+  0 THUMP_UPDATE                                                0369 R
+    TONE_A                                                  =   0006 G
+    TONE_AB                                                 =   0004 G
+    TONE_ABC                                                =   0000 G
+    TONE_AC                                                 =   0002 G
+    TONE_B                                                  =   0005 G
+    TONE_BC                                                 =   0001 G
+    TONE_C                                                  =   0003 G
+    TONE_NONE                                               =   0007 G
+  0 TRIGTABLE                                                   151B R
+    UART                                                    =   C400 G
+    UART_DLL                                                =   C400 G
+    UART_DLM                                                =   C401 G
+    UART_FCR                                                =   C402 G
+    UART_IER                                                =   C401 G
+    UART_INCH                                               =   E0A7 G
+    UART_INIT                                               =   E070 G
+    UART_IO                                                 =   E089 G
+    UART_ISR                                                =   C402 G
+    UART_LCR                                                =   C403 G
+    UART_LSR                                                =   C405 G
+    UART_MCR                                                =   C404 G
+    UART_MSR                                                =   C406 G
+    UART_OUTCH                                              =   E098 G
+    UART_OUTCH_NW                                           =   E0A3 G
+    UART_RHR                                                =   C400 G
+    UART_SETLED                                             =   E094 G
+    UART_SPR                                                =   C407 G
+    UART_THR                                                =   C400 G
+    USERPROG_ORG                                            =   0100 G
+    VARSTART                                                =   0080 
+    VBANK_LOWER                                             =   CC04 G
+    VBANK_UPPER                                             =   CC0C G
+  0 VBLANK                                                      03DB R
+    VDP                                                     =   CC00 G
+    VDP_CLEAR                                               =   E120 G
+    VDP_FILL                                                =   E131 G
+    VDP_INITTEXT                                            =   E13C G
+    VDP_LOADIPATS                                           =   E18F G
+    VDP_LOADPATS                                            =   E163 G
+    VDP_OUTCH                                               =   E1E0 G
+    VDP_PRINTPSTR                                           =   E1C3 G
+    VDP_PRINTSTR                                            =   E1C5 G
+    VDP_PRINTSTRC                                           =   E1CD G
+    VDP_REG                                                 =   CC01 G
+    VDP_SETADDR                                             =   E1D7 G
+    VDP_SET_REGS                                            =   E154 G
+    VDP_TEXT_ON                                             =   E1E4 G
+ASxxxx Assembler V05.00  (Motorola 6809), page 9.
+Hexidecimal [16-Bits]
+
+Symbol Table
+
+    VDP_VRAM                                                =   CC00 G
+    VIA                                                     =   C000 G
+    VIA_ACR                                                 =   C00B G
+    VIA_DDRA                                                =   C003 G
+    VIA_DDRA_D                                              =   0003 
+    VIA_DDRB                                                =   C002 G
+    VIA_DDRB_D                                              =   0002 
+    VIA_IER                                                 =   C00E G
+    VIA_IFR                                                 =   C00D G
+    VIA_IRA                                                 =   C001 G
+    VIA_IRA_D                                               =   0001 
+    VIA_IRB                                                 =   C000 G
+    VIA_IRB_D                                               =   0000 
+    VIA_L                                                   =   0000 
+    VIA_ORA                                                 =   C001 G
+    VIA_ORA_D                                               =   0001 
+    VIA_ORB                                                 =   C000 G
+    VIA_ORB_D                                               =   0000 
+    VIA_PAGE                                                =   00C0 
+    VIA_PCR                                                 =   C00C G
+    VIA_SR                                                  =   C00A G
+    VIA_T1CH                                                =   C005 G
+    VIA_T1CL                                                =   C004 G
+    VIA_T1LH                                                =   C007 G
+    VIA_T1LL                                                =   C006 G
+    VIA_T2CH                                                =   C009 G
+    VIA_T2CL                                                =   C008 G
+    VRAM                                                    =   4000 G
+    XRAMEND                                                 =   BFFF G
+    XRAMSTART                                               =   8000 G
+  0 aclearstrings                                               04C3 R
+  0 actiondone                                                  049E R
+  0 addscore                                                    083E R
+  0 ao_nocoll                                                   079C R
+  0 aprinterror                                                 04A6 R
+  0 aprintgameover                                              04B8 R
+  0 aprintstart                                                 04B0 R
+  0 ast_randomize                                               05B2 R
+  0 astcoll                                                     02E8 R
+  0 astcolloop                                                  02EB R
+    asteroid                                                =   0010 
+  0 astsaucercoll                                               02FB R
+  0 astshipcoll                                                 02EF R
+  0 attractinput                                                02A3 R
+  0 authorstr                                                   0AC3 R
+  0 bchkdone                                                    03AA R
+  0 bnextsprite                                                 0431 R
+  0 bspriteloop                                                 0419 R
+    bullet                                                  =   0008 
+  0 bulletloop                                                  0319 R
+  0 canspawn                                                    06D8 R
+  0 checkfire                                                   0222 R
+  0 checkhyper                                                  0228 R
+  0 checkthrust                                                 0218 R
+  0 chkextralife                                                084A R
+ASxxxx Assembler V05.00  (Motorola 6809), page 10.
+Hexidecimal [16-Bits]
+
+Symbol Table
+
+  0 chkinput                                                    0290 R
+  0 chkrespawn                                                  0237 R
+  0 chksaucer                                                   0279 R
+    clearstrings                                            =   0004 
+  0 clrgameoverstr                                              0AEB R
+  0 clrloop                                                     0508 R
+  0 clrstartstr                                                 0AF7 R
+  0 declifesnd                                                  08E8 R
+  0 digitloop                                                   0469 R
+  0 do_gameover                                                 0861 R
+  0 do_split                                                    056E R
+  0 drawbackwards                                               0416 R
+  0 drawsprites                                                 03ED R
+  0 fire                                                        01DF R
+  0 foundbullet                                                 06F8 R
+  0 gameinpdone                                                 022E R
+  0 gameoverstr                                                 0AD2 R
+  0 genrandbyte                                                 09F4 R
+  0 hyperspace                                                  01FA R
+  0 infinitelife                                                03C3 R
+  0 keeponscreen                                                02DA R
+  0 largesaucer                                                 062F R
+    life                                                    =   0000 
+    lifesnd                                                 =   0080 
+  0 loop                                                        028B R
+  0 lzerocheck                                                  0452 R
+  0 maxsprites                                                  089E R
+  0 movingleft                                                  02D6 R
+  0 movingright                                                 02D0 R
+  0 mute                                                        08B8 R
+  0 newastset                                                   024C R
+  0 nextast                                                     030C R
+  0 nextbullet                                                  033E R
+  0 nextcollobj                                                 0337 R
+  0 nextlevel                                                   0800 R
+  0 nextobj                                                     0355 R
+  0 nextsprite                                                  0408 R
+  0 no_asteroids                                                0523 R
+  0 noanim                                                      03C3 R
+  0 nobgsnd                                                     08D8 R
+  0 nobullet                                                    06F6 R
+  0 nocoll                                                      0764 R
+  0 noextralife                                                 0860 R
+  0 nonextsaucer                                                06AE R
+  0 noscore                                                     0829 R
+  0 nothumpreset                                                037C R
+  0 notzero                                                     045B R
+  0 obj_kill                                                    07CD R
+  0 objcolloop                                                  0326 R
+  0 objerror                                                    0B04 R
+  0 objloop                                                     034B R
+    owner_mask                                              =   0003 
+    pattern                                                 =   000A 
+  0 play3khz                                                    08F0 R
+    player1                                                 =   0002 
+ASxxxx Assembler V05.00  (Motorola 6809), page 11.
+Hexidecimal [16-Bits]
+
+Symbol Table
+
+    player2                                                 =   0003 
+    player_mask                                             =   0002 
+  0 playlifesnd                                                 08DF R
+  0 playsaucersnd                                               08FB R
+  0 playsaucersnd2                                              08FD R
+  0 playthrustsnd                                               0911 R
+  0 playthumpsnd                                                091E R
+  0 positionsaucer                                              0651 R
+  0 printdigit                                                  046B R
+    printerror                                              =   0001 
+    printgameover                                           =   0003 
+  0 printlifechar                                               0488 R
+  0 printlifeloop                                               0481 R
+  0 printlives                                                  0476 R
+  0 printscore                                                  043D R
+    printstart                                              =   0002 
+  0 randbitdone                                                 09BD R
+  0 randzero                                                    0A0B R
+  0 removesaucer                                                02DF R
+  0 repeat                                                      08C2 R
+  0 resetstimer                                                 06AC R
+  0 respawn                                                     0262 R
+  0 rotateleft                                                  01AB R
+  0 rotateright                                                 01B4 R
+    saucer                                                  =   0001 
+  0 saucer_kill                                                 07DB R
+  0 saucer_yvels                                                0B13 R
+  0 sauceractdone                                               0676 R
+  0 saucerchkmove                                               0670 R
+  0 saucerdone                                                  0666 R
+  0 saucerfire                                                  0686 R
+  0 saucermove                                                  0677 R
+    saucersnd                                               =   0040 
+  0 saucersndrept                                               090D R
+  0 score_lg                                                    0834 R
+  0 score_lgsaucer                                              082A R
+  0 score_med                                                   0838 R
+  0 score_sm                                                    083C R
+  0 score_smsaucer                                              082E R
+  0 scs_astloop                                                 06B6 R
+  0 scs_nextast                                                 06D1 R
+  0 set_rand_x                                                  05EC R
+  0 set_rand_y                                                  05F9 R
+  0 setthtimer                                                  0378 R
+  0 setthumpfreq                                                092E R
+  0 ship_init_done                                              061B R
+  0 ship_kill                                                   07E3 R
+    siz                                                     =   000B 
+  0 smallsaucer                                                 0642 R
+  0 spawn_center                                                05FF R
+  0 spawn_random                                                05E3 R
+  0 split_med                                                   0562 R
+  0 split_sm                                                    0569 R
+  0 spriteloop                                                  03F0 R
+  0 startnewlevel                                               0243 R
+ASxxxx Assembler V05.00  (Motorola 6809), page 12.
+Hexidecimal [16-Bits]
+
+Symbol Table
+
+  0 startstr                                                    0ADE R
+  0 storeshipangle                                              01AE R
+  0 thrust                                                      01B9 R
+    thrustsnd                                               =   0020 
+  0 thumpalreadyon                                              0956 R
+    thumpsnd                                                =   0010 
+  0 thumpupdate                                                 028D R
+  0 timersdone                                                  028A R
+    type                                                    =   0001 
+  0 update_bgsnd                                                08C6 R
+  0 updateobjects                                               0348 R
+  0 updatesaucer                                                02C3 R
+  0 updateship                                                  02AF R
+  0 vdp_regs                                                    0ABB R
+  0 warptobottom                                                03A4 R
+  0 warptotop                                                   039D R
+    xpos                                                    =   0002 
+    xpos_frac                                               =   0003 
+    xpos_int                                                =   0002 
+    xvel                                                    =   0006 
+  0 yboundscheck                                                0393 R
+    ypos                                                    =   0004 
+    ypos_frac                                               =   0005 
+    ypos_int                                                =   0004 
+    yvel                                                    =   0008 
+  0 zero_vel                                                    0609 R
+
+
+ASxxxx Assembler V05.00  (Motorola 6809), page 13.
+Hexidecimal [16-Bits]
+
+Area Table
+
+[_CSEG]
+   0 _CODE                                 size 18D3   flags C988
+[_DSEG]
+   1 _DATA                                 size    0   flags C0C0
+

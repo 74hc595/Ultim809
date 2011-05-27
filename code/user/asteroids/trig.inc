@@ -1,0 +1,102 @@
+; vim:noet:sw=8:ts=8:ai:syn=as6809
+; 32-entry trig tables
+; Signed 8.8 fixed point
+
+COS_0		.equ	0x0100	;x=0, y=1
+COS_11_25	.equ	0x00FB	;x=0.19635, y=0.980785
+COS_22_5	.equ	0x00ED	;x=0.392699, y=0.92388
+COS_33_75	.equ	0x00D5	;x=0.589049, y=0.83147
+COS_45		.equ	0x00B5	;x=0.785398, y=0.707107
+COS_56_25	.equ	0x008E	;x=0.981748, y=0.55557
+COS_67_5	.equ	0x0062	;x=1.1781, y=0.382683
+COS_78_75	.equ	0x0032	;x=1.37445, y=0.19509
+COS_90		.equ	0x0000	;x=1.5708, y=6.12323e-17
+COS_101_25	.equ	0xFFCE	;x=1.76715, y=-0.19509
+COS_112_5	.equ	0xFF9E	;x=1.9635, y=-0.382683
+COS_123_75	.equ	0xFF72	;x=2.15984, y=-0.55557
+COS_135		.equ	0xFF4B	;x=2.35619, y=-0.707107
+COS_146_25	.equ	0xFF2B	;x=2.55254, y=-0.83147
+COS_157_5	.equ	0xFF13	;x=2.74889, y=-0.92388
+COS_168_75	.equ	0xFF05	;x=2.94524, y=-0.980785
+COS_180		.equ	0xFF00	;x=3.14159, y=-1
+COS_191_25	.equ	0xFF05	;x=3.33794, y=-0.980785
+COS_202_5	.equ	0xFF13	;x=3.53429, y=-0.92388
+COS_213_75	.equ	0xFF2B	;x=3.73064, y=-0.83147
+COS_225		.equ	0xFF4B	;x=3.92699, y=-0.707107
+COS_236_25	.equ	0xFF72	;x=4.12334, y=-0.55557
+COS_247_5	.equ	0xFF9E	;x=4.31969, y=-0.382683
+COS_258_75	.equ	0xFFCE	;x=4.51604, y=-0.19509
+COS_270		.equ	0x0000	;x=4.71239, y=-1.83697e-16
+COS_218_25	.equ	0x0032	;x=4.90874, y=0.19509
+COS_292_5	.equ	0x0062	;x=5.10509, y=0.382683
+COS_303_75	.equ	0x008E	;x=5.30144, y=0.55557
+COS_315		.equ	0x00B5	;x=5.49779, y=0.707107
+COS_326_25	.equ	0x00D5	;x=5.69414, y=0.83147
+COS_337_5	.equ	0x00ED	;x=5.89049, y=0.92388
+COS_348_75	.equ	0x00FB	;x=6.08684, y=0.980785
+
+SIN_0     	.equ	0x0000	;x=0, y=-0
+SIN_11_25 	.equ	0xFFCE	;x=0.19635, y=-0.19509
+SIN_22_5  	.equ	0xFF9E	;x=0.392699, y=-0.382683
+SIN_33_75 	.equ	0xFF72	;x=0.589049, y=-0.55557
+SIN_45	  	.equ	0xFF4B	;x=0.785398, y=-0.707107
+SIN_56_25 	.equ	0xFF2B	;x=0.981748, y=-0.83147
+SIN_67_5  	.equ	0xFF13	;x=1.1781, y=-0.92388
+SIN_78_75 	.equ	0xFF05	;x=1.37445, y=-0.980785
+SIN_90	  	.equ	0xFF00	;x=1.5708, y=-1
+SIN_101_25	.equ	0xFF05	;x=1.76715, y=-0.980785
+SIN_112_5 	.equ	0xFF13	;x=1.9635, y=-0.92388
+SIN_123_75	.equ	0xFF2B	;x=2.15984, y=-0.83147
+SIN_135   	.equ	0xFF4B	;x=2.35619, y=-0.707107
+SIN_146_25	.equ	0xFF72	;x=2.55254, y=-0.55557
+SIN_157_5 	.equ	0xFF9E	;x=2.74889, y=-0.382683
+SIN_168_75	.equ	0xFFCE	;x=2.94524, y=-0.19509
+SIN_180   	.equ	0x0000	;x=3.14159, y=-1.22465e-16
+SIN_191_25	.equ	0x0032	;x=3.33794, y=0.19509
+SIN_202_5 	.equ	0x0062	;x=3.53429, y=0.382683
+SIN_213_75	.equ	0x008E	;x=3.73064, y=0.55557
+SIN_225   	.equ	0x00B5	;x=3.92699, y=0.707107
+SIN_236_25	.equ	0x00D5	;x=4.12334, y=0.83147
+SIN_247_5 	.equ	0x00ED	;x=4.31969, y=0.92388
+SIN_258_75	.equ	0x00FB	;x=4.51604, y=0.980785
+SIN_270   	.equ	0x0100	;x=4.71239, y=1
+SIN_218_25	.equ	0x00FB	;x=4.90874, y=0.980785
+SIN_292_5 	.equ	0x00ED	;x=5.10509, y=0.92388
+SIN_303_75	.equ	0x00D5	;x=5.30144, y=0.83147
+SIN_315   	.equ	0x00B5	;x=5.49779, y=0.707107
+SIN_326_25	.equ	0x008E	;x=5.69414, y=0.55557
+SIN_337_5 	.equ	0x0062	;x=5.89049, y=0.382683
+SIN_348_75	.equ	0x0032	;x=6.08684, y=0.19509
+
+TRIGTABLE:	.fdb	COS_0, SIN_0       
+		.fdb	COS_11_25, SIN_11_25 
+		.fdb	COS_22_5, SIN_22_5  
+		.fdb	COS_33_75, SIN_33_75 
+		.fdb	COS_45, SIN_45	  
+		.fdb	COS_56_25, SIN_56_25 
+		.fdb	COS_67_5, SIN_67_5  
+		.fdb	COS_78_75, SIN_78_75 
+		.fdb	COS_90, SIN_90	  
+		.fdb	COS_101_25, SIN_101_25
+		.fdb	COS_112_5, SIN_112_5 
+		.fdb	COS_123_75, SIN_123_75
+		.fdb	COS_135, SIN_135   
+		.fdb	COS_146_25, SIN_146_25
+		.fdb	COS_157_5, SIN_157_5 
+		.fdb	COS_168_75, SIN_168_75
+		.fdb	COS_180, SIN_180   
+		.fdb	COS_191_25, SIN_191_25
+		.fdb	COS_202_5, SIN_202_5 
+		.fdb	COS_213_75, SIN_213_75
+		.fdb	COS_225, SIN_225   
+		.fdb	COS_236_25, SIN_236_25
+		.fdb	COS_247_5, SIN_247_5 
+		.fdb	COS_258_75, SIN_258_75
+		.fdb	COS_270, SIN_270   
+		.fdb	COS_218_25, SIN_218_25
+		.fdb	COS_292_5, SIN_292_5 
+		.fdb	COS_303_75, SIN_303_75
+		.fdb	COS_315, SIN_315   
+		.fdb	COS_326_25, SIN_326_25
+		.fdb	COS_337_5, SIN_337_5 
+		.fdb	COS_348_75, SIN_348_75

@@ -1,0 +1,512 @@
+                              1 ; vim:noet:sw=8:ts=8:ai:syn=as6809
+                              2 ; Matt Sarnoff (msarnoff.org/6809) - January 25, 2011
+                              3 ;
+                              4 ; PS/2 keyboard test program
+                              5 
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                              9 	.list
+                             10 
+                     0000    11 NAMETABLE	.equ	0x0000
+                             12 
+                             13 	.area	_CODE(ABS)
+   0100                      14 	.org	USERPROG_ORG
+                             15 ;------------------------------------------------------------------------------
+                             16 ; setup
+                             17 ;------------------------------------------------------------------------------
+   0100 10 CE 80 00   [ 4]   18 		lds	#RAMEND+1	;set up stack pointer
+   0104 CC 01 30      [ 3]   19 		ldd	#VBLANK		;set up interrupt vector
+   0107 FD 00 08      [ 6]   20 		std	IRQVEC
+   010A CC E1 E0      [ 3]   21 		ldd	#VDP_OUTCH	;set up character output vector
+   010D FD 00 0E      [ 6]   22 		std	OUTCH
+   0110 BD E1 3C      [ 8]   23 		jsr	VDP_INITTEXT	;text mode
+   0113 BD E5 F6      [ 8]   24 		jsr	KBD_INIT	;initialize keyboard handler
+                             25 
+                             26 ; enable interrupts
+   0116 1C EF         [ 3]   27 		andcc	#0b11101111
+   0118 BD E6 1E      [ 8]   28 		jsr	KBD_ENABLE	;enable keyboard interrupt
+                             29 
+                             30 
+                             31 ; turn on the display, enable vertical blanking interrupt
+   011B CC F0 81      [ 3]   32 		ldd	#0xF081		;set bits 6 and 5 of register 1
+   011E B7 CC 01      [ 5]   33 		sta	VDP_REG
+   0121 F7 CC 01      [ 5]   34 		stb	VDP_REG
+                             35 
+                             36 ; set up variables
+   0124 CC 40 00      [ 3]   37 		ldd	#VRAM|NAMETABLE
+   0127 FD 00 19      [ 6]   38 		std	CURSORPOS
+   012A 7F 00 1B      [ 7]   39 		clr	KEYSTATE
+                             40 
+                             41 ;------------------------------------------------------------------------------
+                             42 ; logic update routine
+                             43 ;------------------------------------------------------------------------------
+   012D                      44 loop:		;sync
+   012D 7E 01 2D      [ 4]   45 		jmp	loop
+                             46 
+                             47 
+                             48 ;------------------------------------------------------------------------------
+                             49 ; vertical blanking interrupt handler
+                             50 ;------------------------------------------------------------------------------
+   0130 B6 CC 01      [ 5]   51 VBLANK:		lda	VDP_REG		;read status, clear interrupt flag
+                             52 		
+   0133 BD E6 50      [ 8]   53 getcodes:	jsr	KBD_GETCODE	;get scancodes from buffer
+   0136 27 2D         [ 3]   54 		beq	nomorekeys	;stop if 0 received
+   0138 B6 00 1B      [ 5]   55 		lda	KEYSTATE
+   013B BD E6 6B      [ 8]   56 		jsr	KBD_DECODE	;convert scancode to ASCII
+   013E B7 00 1B      [ 5]   57 		sta	KEYSTATE
+   0141 5D            [ 2]   58 		tstb
+   0142 27 EF         [ 3]   59 		beq	getcodes	;skip if 0 is returned
+                             60 ; display the character
+   0144 34 04         [ 6]   61 		pshs	b
+   0146 FC 00 19      [ 6]   62 		ldd	CURSORPOS	;set cursor position
+   0149 F7 CC 01      [ 5]   63 		stb	VDP_REG
+   014C B7 CC 01      [ 5]   64 		sta	VDP_REG
+   014F C3 00 01      [ 4]   65 		addd	#1		;increment
+   0152 10 83 43 C0   [ 5]   66 		cmpd	#(VRAM|NAMETABLE+960)
+   0156 25 03         [ 3]   67 		blo	dispchar	;check for overflow
+   0158 CC 40 00      [ 3]   68 		ldd	#VRAM|NAMETABLE	;if so, return cursor to top of screen
+   015B FD 00 19      [ 6]   69 dispchar:	std	CURSORPOS
+   015E 35 04         [ 6]   70 		puls	b
+   0160 F7 CC 00      [ 5]   71 		stb	VDP_VRAM	;put the character on screen
+   0163 20 CE         [ 3]   72 		bra	getcodes
+   0165 3B            [15]   73 nomorekeys:	rti
+                             74 
+                             75 
+                             76 ;------------------------------------------------------------------------------
+                             77 ; subroutines
+                             78 ;------------------------------------------------------------------------------
+                             79 
+                             80 ;------------------------------------------------------------------------------
+                             81 ; includes
+                             82 ;------------------------------------------------------------------------------
+                             83 
+                             84 ;------------------------------------------------------------------------------
+                             85 ; static data
+                             86 ;------------------------------------------------------------------------------
+                             87 
+                             88 ;------------------------------------------------------------------------------
+                             89 ; variables
+                             90 ;------------------------------------------------------------------------------
+                             91 

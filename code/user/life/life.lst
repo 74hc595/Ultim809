@@ -1,0 +1,1665 @@
+                              1 ; vim:noet:sw=8:ts=8:ai:syn=as6809
+                              2 ; Matt Sarnoff (msarnoff.org/6809) - November 30, 2010
+                              3 ;
+                              4 ; 9thlife
+                              5 ; a fancy implementation of Conway's Game of Life with fading, cycling colors
+                              6 ; and procedural sound effects
+                              7 ;
+                              8 ; Uses the "naive" computation method (neighbors computed for all cells,
+                              9 ; double-buffered grid) but I use some tricks and lots of loop unrolling to
+                             10 ; make it very fast; I believe it's around 50 generations per second.
+                             11 ; Edge wraparound is implemented as well.
+                             12 ;
+                             13 ; Since a new video frame is rendered every 1/60 of a second, the display is
+                             14 ; updated every other frame, and the CPU sits idle for the rest of the time.
+                             15 ;
+                             16 ; At such a small grid size, I'm not sure using different algorithms
+                             17 ; (storing neighbor counts, skipping dead cells with no neighbors) would make
+                             18 ; anything faster. The extra complexity would likely nullify any speed gain.
+                             19 ;
+                             20 ; The program can be controlled via serial terminal:
+                             21 ;   - slows down animation
+                             22 ;   = speeds up animation
+                             23 ;   R refreshes the field with random cell states
+                             24 ;   Q quits
+                             25 
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                             29 	.list
+                             30 
+                             31 ; VRAM addresses (for Graphics I)
+                     0000    32 SPRPATTABLE	.equ	0x0000
+                     0800    33 PATTABLE	.equ	0x0800
+                     1000    34 SPRATTABLE	.equ	0x1000
+                     1400    35 NAMETABLE	.equ	0x1400
+                     2000    36 COLORTABLE	.equ	0x2000
+                             37 
+                             38 ; grid dimensions, should be multiples of 2
+                     0020    39 GRID_COLS	.equ	32
+                     0018    40 GRID_ROWS	.equ	24
+                     0300    41 GRID_SIZE	.equ	GRID_COLS*GRID_ROWS
+                             42 
+                             43 ; number of patterns used to display a cell
+                             44 ; (fading in, fading out, colors, etc.)
+                     0080    45 CELL_STATES	.equ	128
+                     0020    46 CELL_PATTERNS	.equ	32
+                     0004    47 CELL_PATREPEATS	.equ	(CELL_STATES/CELL_PATTERNS)
+                             48 
+                             49 ; neighbor offsets
+                     FFE0    50 northwest	.equ	-GRID_COLS
+                     FFE1    51 north		.equ	northwest+1
+                     FFE2    52 northeast	.equ	north+1
+                     0002    53 east		.equ	2
+                     0020    54 southwest	.equ	GRID_COLS
+                     0021    55 south		.equ	southwest+1
+                     0022    56 southeast	.equ	south+1
+                             57 
+                             58 	.area	_CODE(ABS)
+   0100                      59 	.org	USERPROG_ORG
+                             60 ;------------------------------------------------------------------------------
+                             61 ; setup
+                             62 ;------------------------------------------------------------------------------
+   0100 10 CE 80 00   [ 4]   63 		lds	#RAMEND+1	;set up stack pointer
+   0104 CC 05 BF      [ 3]   64 		ldd	#VBLANK		;set up interrupt vector
+   0107 FD 00 08      [ 6]   65 		std	IRQVEC
+   010A BD E1 20      [ 8]   66 		jsr	VDP_CLEAR	;clear VRAM
+   010D 8E 09 99      [ 3]   67 		ldx	#vdp_regs	;initialize VDP registers
+   0110 BD E1 54      [ 8]   68 		jsr	VDP_SET_REGS
+                             69 
+                             70 ; initialize sound
+   0113 CC 07 3C      [ 3]   71 		ldd	#(PSG_CTRL<<8)|TONE_AB|NOISE_NONE
+   0116 FD CC 02      [ 6]   72 		std	PSG
+                             73 		;ldd	#4000
+                             74 		;jsr	PSG_SET_EFREQ
+   0119 CC 08 10      [ 3]   75 		ldd	#(PSG_A_AMPL<<8)|ENV_ENABLE
+   011C FD CC 02      [ 6]   76 		std	PSG
+   011F CC 09 10      [ 3]   77 		ldd	#(PSG_B_AMPL<<8)|ENV_ENABLE
+   0122 FD CC 02      [ 6]   78 		std	PSG
+                             79 
+                             80 ; write the cell graphics to the pattern table
+   0125 CC 48 00      [ 3]   81 		ldd	#(VRAM|PATTABLE)
+   0128 F7 CC 01      [ 5]   82 		stb	VDP_REG
+   012B B7 CC 01      [ 5]   83 		sta	VDP_REG
+   012E 86 04         [ 2]   84 		lda	#CELL_PATREPEATS
+   0130 34 02         [ 6]   85 		pshs	a
+   0132 8E 09 A1      [ 3]   86 loadcellpats:	ldx	#CELLPATS
+   0135 C6 20         [ 2]   87 		ldb	#CELL_PATTERNS
+   0137 BD E1 63      [ 8]   88 		jsr	VDP_LOADPATS
+   013A 6A E4         [ 6]   89 		dec	,s
+   013C 26 F4         [ 3]   90 		bne	loadcellpats
+   013E 35 02         [ 6]   91 		puls	a
+                             92 
+                             93 ; write the character patterns to the pattern table
+   0140 8E 0A A1      [ 3]   94 		ldx	#CHARS
+   0143 C6 0E         [ 2]   95 		ldb	#14
+   0145 BD E1 63      [ 8]   96 		jsr	VDP_LOADPATS
+                             97 
+                             98 ; write the message to the name table in the bottom row, where it won't
+                             99 ; get overwritten
+   0148 8E 0B 35      [ 3]  100 		ldx	#message
+   014B CC 16 E9      [ 3]  101 		ldd	#NAMETABLE+(32*23)+9
+   014E BD E1 C5      [ 8]  102 		jsr	VDP_PRINTSTR
+                            103 
+                            104 ; write the color table
+   0151 CC 60 00      [ 3]  105 		ldd	#(VRAM|COLORTABLE)
+   0154 F7 CC 01      [ 5]  106 		stb	VDP_REG
+   0157 B7 CC 01      [ 5]  107 		sta	VDP_REG
+   015A 8E 0B 11      [ 3]  108 		ldx	#COLORS
+   015D C6 04         [ 2]  109 		ldb	#4		;4*8 = 32 bytes written total
+   015F BD E1 63      [ 8]  110 		jsr	VDP_LOADPATS
+                            111 
+                            112 ; initialize the life grids
+   0162 BD 06 45      [ 8]  113 		jsr	GRIDS_CLEAR
+   0165 8E 0E 76      [ 3]  114 		ldx	#GRID2
+   0168 BF 14 78      [ 6]  115 		stx	NEXTGRID
+   016B 8E 0B 76      [ 3]  116 		ldx	#GRID1
+   016E BF 14 76      [ 6]  117 		stx	CURRENTGRID
+                            118 
+                            119 ; start with some random cells alive
+   0171 BD 08 6A      [ 8]  120 		jsr	SETRANDOMSEED
+   0174 BD 06 56      [ 8]  121 		jsr	GRID_RANDOM
+                            122 
+                            123 ; initialize other parameters
+   0177 7F 14 7A      [ 7]  124 		clr	ANIMFRAME
+   017A 86 0A         [ 2]  125 		lda	#10		;2 is the fastest speed possible
+   017C 8D 16         [ 7]  126 		bsr	SETANIMDELAY
+   017E 7F 14 7C      [ 7]  127 		clr	LIVINGCELLS
+   0181 7F 14 7D      [ 7]  128 		clr	DYINGCELLS
+   0184 7F 14 7E      [ 7]  129 		clr	CTLRSTATE
+                            130 
+                            131 ; enable interrupts
+   0187 1C EF         [ 3]  132 		andcc	#0b11101111
+                            133 
+                            134 ; turn on the display, enable vertical blanking interrupt
+   0189 CC E0 81      [ 3]  135 		ldd	#0xE081		;set bits 6 and 5 of register 1
+   018C B7 CC 01      [ 5]  136 		sta	VDP_REG
+   018F F7 CC 01      [ 5]  137 		stb	VDP_REG
+   0192 20 1F         [ 3]  138 		bra	loop
+                            139 
+                            140 ;;; set animation delay and audio envelope generator frequency
+                            141 ;;; arguments:	delay in A
+                            142 ;;; returns:	none
+                            143 ;;; destroys:	B
+   0194 B7 14 7B      [ 5]  144 SETANIMDELAY:	sta	ANIMDELAY
+   0197 5F            [ 2]  145 		clrb
+   0198 7E 09 2B      [ 4]  146 		jmp	PSG_SET_EFREQ
+                            147 	
+                            148 ;;; keypress routines
+   019B B6 14 7B      [ 5]  149 faster:		lda	ANIMDELAY
+   019E 4A            [ 2]  150 		deca
+   019F 8D F3         [ 7]  151 		bsr	SETANIMDELAY
+   01A1 20 10         [ 3]  152 		bra	loop
+                            153 
+   01A3 B6 14 7B      [ 5]  154 slower:		lda	ANIMDELAY
+   01A6 4C            [ 2]  155 		inca
+   01A7 8D EB         [ 7]  156 		bsr	SETANIMDELAY
+   01A9 20 08         [ 3]  157 		bra	loop
+                            158 
+   01AB BD 06 56      [ 8]  159 re_randomize:	jsr	GRID_RANDOM
+   01AE 7F 14 7A      [ 7]  160 		clr	ANIMFRAME
+   01B1 20 00         [ 3]  161 		bra	loop
+                            162 
+                            163 ;------------------------------------------------------------------------------
+                            164 ; logic update routine
+                            165 ;------------------------------------------------------------------------------
+   01B3                     166 loop:		
+                            167 ; read controllers, we only care about button presses (not releases)
+   01B3 BD 09 53      [ 8]  168 		jsr	READ_3BUTTON	;read controller 1
+   01B6 1F 89         [ 6]  169 		tfr	a,b		;save controller 1 state
+   01B8 43            [ 2]  170 		coma			;detect only button presses
+   01B9 BA 14 7E      [ 5]  171 		ora	CTLRSTATE	;((NOT lastState) AND currentState)
+   01BC 43            [ 2]  172 		coma			;eval'd as (NOT ((NOT current) OR last))
+   01BD F7 14 7E      [ 5]  173 		stb	CTLRSTATE	;save new controller state
+                            174 ; A now contains button deltas
+   01C0 85 01         [ 2]  175 		bita	#BTN_UP
+   01C2 26 D7         [ 3]  176 		bne	faster
+   01C4 85 02         [ 2]  177 		bita	#BTN_DOWN
+   01C6 26 DB         [ 3]  178 		bne	slower
+   01C8 85 70         [ 2]  179 		bita	#BTN_A|BTN_B|BTN_C
+   01CA 26 DF         [ 3]  180 		bne	re_randomize
+                            181 
+                            182 ; perform animation
+   01CC B6 14 7A      [ 5]  183 do_animate:	lda	ANIMFRAME
+   01CF B1 14 7B      [ 5]  184 		cmpa	ANIMDELAY
+   01D2 24 03         [ 3]  185 		bhs	do_update	;only update grid after delay elapsed
+   01D4 7E 05 93      [ 4]  186 		jmp	display
+                            187 
+   01D7 7F 14 7A      [ 7]  188 do_update:	clr	ANIMFRAME
+                            189 ; generate the next iteration
+                            190 ; X lags behind by one byte, it points to the current cell's west neighbor,
+                            191 ; letting us use indexed addressing with no offset (saves 1 cycle per cell)
+                            192 ; when reading the west neighbor
+   01DA BE 14 76      [ 6]  193 		ldx	CURRENTGRID
+   01DD BD 06 78      [ 8]  194 		jsr	GRID_BDRWRAP	;copy edges so wraparound works
+   01E0 10 BE 14 78   [ 7]  195 		ldy	NEXTGRID
+   01E4 CE 0B 44      [ 3]  196 		ldu	#STATETABLE
+   01E7 34 30         [ 7]  197 		pshs	x,y
+   01E9 30 88 20      [ 5]  198 		leax	GRID_COLS,x
+   01EC 31 A8 21      [ 5]  199 		leay	GRID_COLS+1,y
+                            200 
+                            201 ; the border cells are not updated, so instead of checking if each cell is at
+                            202 ; the border, we just unroll the entire row loop
+                            203 ; cell kernel is 58 cycles
+                            204 ; for 32x24 grid, 2 + ((30*58)+5+5+2+6)*22 = 38678 cycles (19.339 ms)
+   01EF 86 16         [ 2]  205 		lda	#GRID_ROWS-2	;skip top/bottom borders
+   01F1                     206 updaterow:
+                            207 	.rept GRID_COLS-2		;cell update kernel
+                            208 		ldb	northwest,x	;compute live neighbor count
+                            209 		addb	north,x		;(cells are either 0 or 1)
+                            210 		addb	northeast,x
+                            211 		addb	east,x
+                            212 		addb	southwest,x
+                            213 		addb	south,x
+                            214 		addb	southeast,x
+                            215 		addb	,x+		;west
+                            216 		lslb
+                            217 		addb	,x		;current cell state
+                            218 		ldb	b,u		;get new cell state from table
+                            219 		stb	,y+
+                            220 	.endm
+   0557 30 02         [ 5]  221 		leax	2,x		;skip left/right border cells
+   0559 31 22         [ 5]  222 		leay	2,y
+   055B 4A            [ 2]  223 		deca
+   055C 10 26 FC 91   [ 6]  224 		lbne	updaterow
+                            225 ; now swap the grid pointers
+   0560 35 30         [ 7]  226 		puls	x,y
+   0562 BF 14 78      [ 6]  227 		stx	NEXTGRID
+   0565 10 BF 14 76   [ 7]  228 		sty	CURRENTGRID
+                            229 
+                            230 ; play some sound
+                     0000   231 	.if 0
+                            232 		clra
+                            233 		ldb	LIVINGCELLS
+                            234 		lslb
+                            235 		rola
+                            236 		lslb
+                            237 		rola
+                            238 		jsr	PSG_SET_AFREQ
+                            239 		lda	DYINGCELLS
+                            240 		clrb
+                            241 		lsra
+                            242 		rorb
+                            243 		lsra
+                            244 		rorb
+                            245 		jsr	PSG_SET_BFREQ
+                            246 		ldd	#(PSG_ENV_SHAPE<<8)|0b0
+                            247 		std	PSG
+                            248 	.endif
+   0569 8E 0B 56      [ 3]  249 		ldx	#NOTES
+   056C F6 14 7C      [ 5]  250 		ldb	LIVINGCELLS
+   056F 54            [ 2]  251 		lsrb
+   0570 54            [ 2]  252 		lsrb
+   0571 54            [ 2]  253 		lsrb
+   0572 C4 1E         [ 2]  254 		andb	#0b00011110
+   0574 EC 85         [ 6]  255 		ldd	b,x
+   0576 BD 09 01      [ 8]  256 		jsr	PSG_SET_AFREQ
+   0579 F6 14 7D      [ 5]  257 		ldb	DYINGCELLS
+   057C 53            [ 2]  258 		comb
+   057D 54            [ 2]  259 		lsrb
+   057E 54            [ 2]  260 		lsrb
+   057F 54            [ 2]  261 		lsrb
+   0580 C4 1E         [ 2]  262 		andb	#0b00011110
+   0582 EC 85         [ 6]  263 		ldd	b,x
+   0584 BD 09 0F      [ 8]  264 		jsr	PSG_SET_BFREQ
+   0587 CC 0D 00      [ 3]  265 		ldd	#(PSG_ENV_SHAPE<<8)|0b0
+   058A FD CC 02      [ 6]  266 		std	PSG
+   058D 7F 14 7C      [ 7]  267 		clr	LIVINGCELLS
+   0590 7F 14 7D      [ 7]  268 		clr	DYINGCELLS
+                            269 
+                            270 
+                            271 ; update the display grid, causing cells to dissolve in and out,
+                            272 ; and fade between colors
+   0593 FE 14 76      [ 6]  273 display:	ldu	CURRENTGRID
+   0596 10 8E 11 76   [ 4]  274 		ldy	#DISPLAYGRID
+   059A 8E 03 00      [ 3]  275 		ldx	#GRID_SIZE
+   059D E6 C0         [ 6]  276 updatedisp:	ldb	,u+		;is cell alive or dead?
+   059F 27 0C         [ 3]  277 		beq	cell_dead
+   05A1 E6 A4         [ 4]  278 cell_alive:	ldb	,y		;is pattern at max?
+   05A3 C1 7F         [ 2]  279 		cmpb	#CELL_STATES-1
+   05A5 27 0E         [ 3]  280 		beq	nextcell	;yes, keep it there
+   05A7 5C            [ 2]  281 		incb			;no, increment it
+   05A8 7C 14 7C      [ 7]  282 		inc	LIVINGCELLS
+   05AB 20 08         [ 3]  283 		bra	nextcell
+                            284 
+   05AD E6 A4         [ 4]  285 cell_dead:	ldb	,y		;is pattern zero?
+   05AF 27 04         [ 3]  286 		beq	nextcell	;yes, keep it there
+   05B1 5A            [ 2]  287 		decb			;no, decrement it
+   05B2 7C 14 7D      [ 7]  288 		inc	DYINGCELLS
+                            289 
+   05B5 E7 A0         [ 6]  290 nextcell:	stb	,y+
+   05B7 30 1F         [ 5]  291 		leax	-1,x
+   05B9 26 E2         [ 3]  292 		bne	updatedisp
+                            293 
+   05BB 13            [ 4]  294 		sync
+   05BC 7E 01 B3      [ 4]  295 		jmp	loop
+                            296 
+                            297 
+                            298 
+                            299 ;------------------------------------------------------------------------------
+                            300 ; vertical blanking interrupt handler
+                            301 ;------------------------------------------------------------------------------
+   05BF B6 CC 01      [ 5]  302 VBLANK:		lda	VDP_REG		;read status, clear interrupt flag
+                            303 ; load the name table with the new grid
+                            304 ; don't need to write the top border row, so we set the VRAM address
+                            305 ; to just before the start of row 1
+   05C2 CC 54 1F      [ 3]  306 		ldd	#(VRAM|(NAMETABLE+GRID_COLS-1))	;skip top row
+   05C5 F7 CC 01      [ 5]  307 		stb	VDP_REG
+   05C8 B7 CC 01      [ 5]  308 		sta	VDP_REG
+   05CB CE 11 76      [ 3]  309 		ldu	#DISPLAYGRID
+                            310 ; advance to the byte before the first byte of row 1
+                            311 ; (this is the right border of row 0)
+   05CE 33 C8 1F      [ 5]  312 		leau	GRID_COLS-1,u	;skip top row
+                            313 ; stack-blast the new grid into VRAM, blanking out the border columns
+                            314 ; (pulu d is faster than ldd ,u++)
+   05D1 8E CC 00      [ 3]  315 		ldx	#VDP_VRAM
+   05D4 C6 16         [ 2]  316 		ldb	#GRID_ROWS-2	;don't need top or bottom borders
+   05D6 34 04         [ 6]  317 		pshs	b
+   05D8 37 06         [ 7]  318 1$:		pulu	d		;skip the 2 border bytes
+   05DA CC 00 00      [ 3]  319 		ldd	#0		;and write zeros in their place
+   05DD A7 84         [ 4]  320 		sta	,x
+   05DF E7 00         [ 5]  321 		stb	0,x		;extra cycle added so VDP doesn't miss
+                            322 	.rept (GRID_COLS/2)-1
+                            323 		pulu	d		;now blast the cells
+                            324 		sta	,x
+                            325 		stb	0,x
+                            326 	.endm
+   063B 6A E4         [ 6]  327 		dec	,s		;decrement row counter
+   063D 26 99         [ 3]  328 		bne	1$
+   063F 35 04         [ 6]  329 		puls	b
+   0641 7C 14 7A      [ 7]  330 		inc	ANIMFRAME
+   0644 3B            [15]  331 		rti
+                            332 
+                            333 
+                            334 
+                            335 ;------------------------------------------------------------------------------
+                            336 ; subroutines
+                            337 ;------------------------------------------------------------------------------
+                            338 
+                            339 ;;; clear all grids (state grid 1, state grid 2, display grid)
+                            340 ;;; arguments:	none
+                            341 ;;; returns:	none
+                            342 ;;; destroys:	X,U,A,B
+   0645 8E 0B 76      [ 3]  343 GRIDS_CLEAR:	ldx	#GRID1
+   0648 CC 04 80      [ 3]  344 		ldd	#(GRID_SIZE*3)/2	;number of words
+   064B CE 00 00      [ 3]  345 		ldu	#0
+   064E EF 81         [ 8]  346 1$:		stu	,x++
+   0650 83 00 01      [ 4]  347 		subd	#1
+   0653 26 F9         [ 3]  348 		bne	1$
+   0655 39            [ 5]  349 		rts
+                            350 
+                            351 
+                            352 ;;; initialize CURRENTGRID with random cells alive
+                            353 ;;; arguments:	none
+                            354 ;;; returns:	none
+                            355 ;;; destroys:	X,A,B
+   0656 BE 14 76      [ 6]  356 GRID_RANDOM:	ldx	CURRENTGRID
+   0659 30 88 21      [ 5]  357 		leax	GRID_COLS+1,x	;skip top/left border
+   065C C6 16         [ 2]  358 		ldb	#GRID_ROWS-2	;row counter at 1,s
+   065E 34 06         [ 7]  359 		pshs	d
+                            360 ;---- row loop
+   0660 86 1E         [ 2]  361 randrowloop:	lda	#GRID_COLS-2	;column counter at ,s
+   0662 A7 E4         [ 4]  362 		sta	,s
+                            363 ;-------- column loop
+   0664 BD 08 77      [ 8]  364 randcolloop:	jsr	RANDBIT		;get random bit
+   0667 59            [ 2]  365 		rolb			;extend carry bit to byte
+   0668 C4 01         [ 2]  366 		andb	#1
+   066A E7 80         [ 6]  367 		stb	,x+		;write byte
+   066C 6A E4         [ 6]  368 		dec	,s
+   066E 26 F4         [ 3]  369 		bne	randcolloop
+                            370 ;-------- end column loop
+   0670 30 02         [ 5]  371 		leax	2,x		;skip border bytes
+   0672 6A 61         [ 7]  372 		dec	1,s
+   0674 26 EA         [ 3]  373 		bne	randrowloop
+                            374 ;---- end row loop
+   0676 35 86         [ 8]  375 		puls	d,pc
+                            376 
+                            377 
+                            378 ;;; copy cells at borders to opposite sides, to handle wrap-around
+                            379 ;;; (toroidal world)
+                            380 ;;; arguments:	grid pointer in X
+                            381 ;;; returns:	none
+                            382 ;;; destroys:	A,B
+                            383 ;;;
+                            384 ;;; example:
+                            385 ;;;   - - - - - - -      - h i j k l -
+                            386 ;;;   - a b c d e -      e a b c d e a
+                            387 ;;;   - f       g -  =>  g f       g f
+                            388 ;;;   - h i j k l -      l h i j k l h
+                            389 ;;;   - - - - - - -      - a b c d e -
+   0678 34 30         [ 7]  390 GRID_BDRWRAP:	pshs	x,y			;save pointers
+                            391 ; not too many cells need to be copied... why don't we unroll the whole thing?
+                            392 ; top row -> bottom row
+                            393 ; x runs along top row
+                            394 ; y runs along bottom row
+   067A 31 89 02 C0   [ 8]  395 		leay	GRID_COLS*(GRID_ROWS-2),x
+   067E 30 88 20      [ 5]  396 		leax	GRID_COLS,x
+                     0001   397 		n = 1
+                            398 	.rept (GRID_COLS-2)/2
+                            399 		ldd	n,x			;copy top row to bottom
+                            400 		std	n+GRID_COLS,y
+                            401 		ldd	n,y			;copy bottom row to top
+                            402 		std	n-GRID_COLS,x
+                            403 		n = n+2
+                            404 	.endm
+                            405 
+                            406 ; left -> right, right -> left
+                            407 ; note: x now points to column 0, row 1
+                            408 	.rept (GRID_ROWS-2)
+                            409 		sta	,x
+                            410 		lda	1,x			;copy left to right
+                            411 		sta	GRID_COLS-1,x
+                            412 		lda	GRID_COLS-2,x		;copy right to left
+                            413 		sta	,x
+                            414 		leax	GRID_COLS,x		;advance to next row
+                            415 	.endm
+   0868 35 B0         [ 8]  416 		puls	x,y,pc
+                            417 
+                            418 
+                            419 	.include "../include/random.asm"
+                              1 ; vim:noet:sw=8:ts=8:ai:syn=as6809
+                              2 ; Matt Sarnoff (msarnoff.org/6809) - July 5, 2010
+                              3 ;
+                              4 ;************ Pseudorandom number generator ************
+                              5 ;Uses a 32-bit Galois linear feedback shift register.
+                              6 ;Not that great, but at least it doesn't require multiplication or division.
+                              7 
+                              8 
+   086A CC 12 34      [ 3]    9 SETRANDOMSEED::	ldd	#0x1234
+   086D FD 08 EB      [ 6]   10 		std	RANDSEED
+   0870 CC 56 78      [ 3]   11 		ldd	#0x5678
+   0873 FD 08 ED      [ 6]   12 		std	RANDSEED+2
+   0876 39            [ 5]   13 		rts
+                             14 
+                             15 ;;; generate a pseudorandom bit
+                             16 ;;; arguments:	none
+                             17 ;;; returns:	bit in C flag
+                             18 ;;; destroys:	A,B
+   0877 74 08 EB      [ 7]   19 RANDBIT::	lsr	RANDSEED	;shift right one bit
+   087A 76 08 EC      [ 7]   20 		ror	RANDSEED+1
+   087D 76 08 ED      [ 7]   21 		ror	RANDSEED+2
+   0880 76 08 EE      [ 7]   22 		ror	RANDSEED+3
+   0883 34 01         [ 6]   23 		pshs	cc		;save carry (output) bit
+   0885 24 14         [ 3]   24 		bcc	randbitdone	;don't xor if lsb is 0
+   0887 FC 08 EB      [ 6]   25 		ldd	RANDSEED	;xor with 0xD0000001
+   088A 88 D0         [ 2]   26 		eora	#0xD0		;(x^32 + x^31 + x^29 + x + 1)
+   088C C8 00         [ 2]   27 		eorb	#0x00
+   088E FD 08 EB      [ 6]   28 		std	RANDSEED
+   0891 FC 08 ED      [ 6]   29 		ldd	RANDSEED+2
+   0894 88 00         [ 2]   30 		eora	#0x00
+   0896 C8 01         [ 2]   31 		eorb	#0x01
+   0898 FD 08 ED      [ 6]   32 		std	RANDSEED+2
+   089B 35 81         [ 7]   33 randbitdone:	puls	pc,cc
+                             34 		
+                             35 ;;; generate a pseudorandom byte from 8 bits
+                             36 ;;; arguments:	none
+                             37 ;;; returns:	byte in B
+                             38 ;;; destroys:	A
+   089D 32 7F         [ 5]   39 RANDBYTE::	leas	-1,s
+   089F 8D D6         [ 7]   40 		bsr	RANDBIT
+   08A1 66 E4         [ 6]   41 		ror	,s
+   08A3 8D D2         [ 7]   42 		bsr	RANDBIT
+   08A5 66 E4         [ 6]   43 		ror	,s
+   08A7 8D CE         [ 7]   44 		bsr	RANDBIT
+   08A9 66 E4         [ 6]   45 		ror	,s
+   08AB 8D CA         [ 7]   46 		bsr	RANDBIT
+   08AD 66 E4         [ 6]   47 		ror	,s
+   08AF 8D C6         [ 7]   48 		bsr	RANDBIT
+   08B1 66 E4         [ 6]   49 		ror	,s
+   08B3 8D C2         [ 7]   50 		bsr	RANDBIT
+   08B5 66 E4         [ 6]   51 		ror	,s
+   08B7 8D BE         [ 7]   52 		bsr	RANDBIT
+   08B9 66 E4         [ 6]   53 		ror	,s
+   08BB 8D BA         [ 7]   54 		bsr	RANDBIT
+   08BD 66 E4         [ 6]   55 		ror	,s
+   08BF 35 84         [ 7]   56 		puls	b,pc
+                             57 
+                             58 ;;; generate a pseudorandom byte between 0 and A-1
+                             59 ;;; arguments:	maximum in A
+                             60 ;;; returns:	byte in B
+                             61 ;;; destroys:	A,B
+                             62 ;;;
+                             63 ;;; Calculates the number of bits required and generates numbers until one is
+                             64 ;;; found within the specified range.
+                             65 ;;; Does not require division, and thus does not suffer from modulo bias.
+   08C1 81 01         [ 2]   66 RANDBYTERANGE::	cmpa	#1		;input of 0 or 1 always returns 0
+   08C3 23 24         [ 3]   67 		bls	randzero
+   08C5 4A            [ 2]   68 		deca			;subtract 1
+   08C6 34 02         [ 6]   69 		pshs	a		;save range max
+                             70 ; find the number of random bits needed
+                             71 ; shift A left until a 1 is encountered
+   08C8 C6 09         [ 2]   72 		ldb	#9		;number of bits needed
+   08CA 5A            [ 2]   73 1$:		decb
+   08CB 48            [ 2]   74 		lsla
+   08CC 24 FC         [ 3]   75 		bcc	1$
+   08CE 34 04         [ 6]   76 		pshs	b		;save number of bits
+                             77 ; generate random numbers until one within the range is found
+   08D0 32 7E         [ 5]   78 		leas	-2,s		;bytes for bit count and rand. number
+                             79 ;---- random byte loop begin
+   08D2 A6 62         [ 5]   80 genrandbyte:	lda	2,s
+   08D4 A7 61         [ 5]   81 		sta	1,s		;copy bit count
+   08D6 6F E4         [ 6]   82 		clr	,s		;clear random number accumulator
+                             83 ;------ random bit loop begin
+   08D8 8D 9D         [ 7]   84 2$:		bsr	RANDBIT		;get a bit
+   08DA 69 E4         [ 6]   85 		rol	,s		;shift it into accumulator
+   08DC 6A 61         [ 7]   86 		dec	1,s		;decrement bit count
+   08DE 26 F8         [ 3]   87 		bne	2$		;get more if needed
+                             88 ;------ random bit loop end
+   08E0 E6 E4         [ 4]   89 		ldb	,s		;is the number in range?
+   08E2 E1 63         [ 5]   90 		cmpb	3,s
+   08E4 22 EC         [ 3]   91 		bhi	genrandbyte	;too high? try another
+                             92 ;---- random byte loop end
+   08E6 32 64         [ 5]   93 		leas	4,s		;clean up stack
+   08E8 39            [ 5]   94 		rts			;return number in B
+   08E9 5F            [ 2]   95 randzero:	clrb
+   08EA 39            [ 5]   96 		rts
+                             97 
+                             98 
+   08EB                      99 RANDSEED:	.rmb	4		;seed bytes (shift register)
+                            100 
+                     0000   101 	.if 0
+                            102 RANDTEST:	ldx	#testtable
+                            103 1$:		clr	,x+
+                            104 		cmpx	#testtable+512
+                            105 		bne	1$
+                            106 
+                            107 		ldy	#0x20
+                            108 2$:		tfr	y,d
+                            109 		jsr	OUTDECUW
+                            110 		jsr	OUTNL
+                            111 		pshs	y
+                            112 		ldu	#testtable
+                            113 		ldy	#0xffff
+                            114 3$:		jsr	RANDBYTE
+                            115 		clra
+                            116 		lslb			;multiply by 2 to get histogram offset
+                            117 		rola
+                            118 		ldx	d,u		;get histogram value
+                            119 		leax	1,x		;increment histogram value
+                            120 		stx	d,u		;store back in histogram
+                            121 		leay	-1,y		;decrement count
+                            122 		cmpy	#0
+                            123 		bne	3$
+                            124 		puls	y
+                            125 		leay	-1,y
+                            126 		cmpy	#0
+                            127 		bne	2$
+                            128 
+                            129 		ldx	#testtable
+                            130 		clrb
+                            131 		pshs	b
+                            132 4$:		ldb	,s
+                            133 		jsr	OUTDECUB
+                            134 		ldb	#',
+                            135 		jsr	[OUTCH]
+                            136 		ldd	,x++
+                            137 		jsr	OUTDECUW
+                            138 		jsr	OUTNL
+                            139 		inc	,s
+                            140 		cmpx	#testtable+512
+                            141 		bne	4$
+                            142 		leas	1,s
+                            143 		rts
+                            144 testtable:	.rmb	512
+                            145 	.endif
+                            420 	.include "../include/ym2149.asm"
+                              1 ; vim:noet:sw=8:ts=8:ai:syn=as6809
+                              2 ; Matt Sarnoff (msarnoff.org/6809) - November 5, 2010
+                              3 ;
+                              4 ;************ YM2149/AY-3-8910 Programmable Sound Generator ************
+                              5 ;
+                              6 ; Assuming a 2 MHz master clock:
+                              7 ;
+                              8 ; Tone generator frequency = 2000000 / (16 * T)
+                              9 ;   where T is the 12-bit value in 0x01-0x00, 0x03-0x02, or 0x05-0x04
+                             10 ;   min (T=4095):  30.525 Hz
+                             11 ;   max (T=1):     125000 Hz
+                             12 ; given F in Hz, T = 125000 / F
+                             13 ;
+                             14 ; Noise generator frequency = 2000000 / (16 * N)
+                             15 ;   where N is the 5-bit value in 0x06
+                             16 ;   min (N=31):    4032.3 Hz
+                             17 ;   max (N=1):     125000 Hz
+                             18 ;
+                             19 ; Envelope frequency = 2000000 / (256 * E)
+                             20 ;   where E is the 16-bit value in 0x0C-0x0B
+                             21 ;   min (E=65535): 0.1192 Hz
+                             22 ;   max (E=1):     7812.5 Hz
+                             23  
+                             24 ;;; silence the sound generator
+                             25 ;;; arguments:	none
+                             26 ;;; returns:	none
+                             27 ;;; destroys:	A,B
+   08EF CC 07 3F      [ 3]   28 PSG_SILENCE::	ldd	#(PSG_CTRL<<8)|TONE_NONE|NOISE_NONE
+   08F2 FD CC 02      [ 6]   29 		std	PSG		;write address (in A) then data (in B)
+   08F5 39            [ 5]   30 		rts
+                             31 
+                             32 
+                             33 ;;; write to a PSG register
+                             34 ;;; arguments:	register address (0x00-0x0F) in A
+                             35 ;;;		data in B
+                             36 ;;; returns:	none
+                             37 ;;; destroys:	none
+   08F6 FD CC 02      [ 6]   38 PSG_WRITE::	std	PSG
+   08F9 39            [ 5]   39 		rts
+                             40 
+                             41 
+                             42 ;;; read from a PSG register
+                             43 ;;; argments:	register address (0x00-0x0F) in A
+                             44 ;;; returns:	register value in A
+                             45 ;;; destroys:	none
+   08FA B7 CC 02      [ 5]   46 PSG_READ::	sta	PSG
+   08FD B6 CC 02      [ 5]   47 		lda	PSG
+   0900 39            [ 5]   48 		rts
+                             49 
+                             50 
+                             51 ;;; write 2-byte value to registers 0x00-0x01 (tone generator A frequency)
+                             52 ;;; arguments:	value in D (big-endian)
+                             53 ;;; returns:	none
+                             54 ;;; destroys:	A,B
+   0901 34 02         [ 6]   55 PSG_SET_AFREQ::	pshs	a
+   0903 86 00         [ 2]   56 		lda	#PSG_A_FREQL	;address 0
+   0905 FD CC 02      [ 6]   57 		std	PSG		;write address 0 followed by data LSB
+   0908 4C            [ 2]   58 		inca			;address 1
+   0909 35 04         [ 6]   59 		puls	b		;get data MSB
+   090B FD CC 02      [ 6]   60 		std	PSG		;write address 1 followed by data MSB
+   090E 39            [ 5]   61 		rts
+                             62 
+                             63 
+                             64 ;;; write 2-byte value to registers 0x02-0x03 (tone generator B frequency)
+                             65 ;;; arguments:	value in D (big-endian)
+                             66 ;;; returns:	none
+                             67 ;;; destroys:	A,B
+   090F 34 02         [ 6]   68 PSG_SET_BFREQ::	pshs	a
+   0911 86 02         [ 2]   69 		lda	#PSG_B_FREQL
+   0913 FD CC 02      [ 6]   70 		std	PSG
+   0916 4C            [ 2]   71 		inca
+   0917 35 04         [ 6]   72 		puls	b
+   0919 FD CC 02      [ 6]   73 		std	PSG
+   091C 39            [ 5]   74 		rts
+                             75 
+                             76 
+                             77 ;;; write 2-byte value to registers 0x04-0x05 (tone generator C frequency)
+                             78 ;;; arguments:	value in D (big-endian)
+                             79 ;;; returns:	none
+                             80 ;;; destroys:	A,B
+   091D 34 02         [ 6]   81 PSG_SET_CFREQ::	pshs	a
+   091F 86 04         [ 2]   82 		lda	#PSG_C_FREQL
+   0921 FD CC 02      [ 6]   83 		std	PSG
+   0924 4C            [ 2]   84 		inca
+   0925 35 04         [ 6]   85 		puls	b
+   0927 FD CC 02      [ 6]   86 		std	PSG
+   092A 39            [ 5]   87 		rts
+                             88 
+                             89 
+                             90 ;;; write 2-byte value to registers 0x0B-0x0C (envelope frequency)
+                             91 ;;; arguments:	value in D (big-endian)
+                             92 ;;; returns:	none
+                             93 ;;; destroys	A,B
+   092B 34 02         [ 6]   94 PSG_SET_EFREQ::	pshs	a
+   092D 86 0B         [ 2]   95 		lda	#PSG_ENV_FREQL
+   092F FD CC 02      [ 6]   96 		std	PSG
+   0932 4C            [ 2]   97 		inca
+   0933 35 04         [ 6]   98 		puls	b
+   0935 FD CC 02      [ 6]   99 		std	PSG
+   0938 39            [ 5]  100 		rts
+                            101 
+                            102 
+                            103 ;;; read 1-button Atari joysticks
+                            104 ;;; arguments:	none
+                            105 ;;; returns:	controller 1 button state in A
+                            106 ;;;		controller 2 button state in B
+                            107 ;;; destroys:	none
+                            108 ;;;
+                            109 ;;; A 1 bit indicates a pressed button.
+                            110 ;;; On return, flags reflect controller 1 state.
+   0939 B6 CC 0E      [ 5]  111 READ_1BUTTON::	lda	CTLR_SET_SELECT	;make sure select line is high
+                            112 		
+   093C C6 0F         [ 2]  113 		ldb	#PSG_IO_B
+   093E F7 CC 02      [ 5]  114 		stb	PSG_LATCH_ADDR
+   0941 F6 CC 02      [ 5]  115 		ldb	PSG_READ_ADDR
+   0944 53            [ 2]  116 		comb
+   0945 C4 1F         [ 2]  117 		andb	#0b00011111	;controller 2 state in B
+                            118 
+   0947 86 0E         [ 2]  119 		lda	#PSG_IO_A
+   0949 B7 CC 02      [ 5]  120 		sta	PSG_LATCH_ADDR
+   094C B6 CC 02      [ 5]  121 		lda	PSG_READ_ADDR
+   094F 43            [ 2]  122 		coma
+   0950 84 1F         [ 2]  123 		anda	#0b00011111	;controller 1 state in A
+   0952 39            [ 5]  124 		rts
+                            125 
+                            126 
+                            127 ;;; read 3-button Sega gamepads
+                            128 ;;; arguments:	none
+                            129 ;;; returns:	controller 1 button state in A
+                            130 ;;;		controller 2 button state in B
+                            131 ;;; destroys:	none
+                            132 ;;;
+                            133 ;;; A 1 bit indicates a pressed button.
+                            134 ;;; Flags are not set on return.
+   0953 32 7E         [ 5]  135 READ_3BUTTON::	leas	-2,s		;2 bytes for controller states
+   0955 B6 CC 06      [ 5]  136 		lda	CTLR_CLR_SELECT	;read A and Start buttons
+   0958 86 0E         [ 2]  137 		lda	#PSG_IO_A	;read controller 1
+   095A B7 CC 02      [ 5]  138 		sta	PSG_LATCH_ADDR
+   095D B6 CC 02      [ 5]  139 		lda	PSG_READ_ADDR
+   0960 43            [ 2]  140 		coma			;invert bits so 1 indicates press
+   0961 84 30         [ 2]  141 		anda	#0b00110000
+   0963 48            [ 2]  142 		lsla			;shift into bits 6 and 7
+   0964 48            [ 2]  143 		lsla
+   0965 A7 E4         [ 4]  144 		sta	,s
+   0967 86 0F         [ 2]  145 		lda	#PSG_IO_B	;read controller 2
+   0969 B7 CC 02      [ 5]  146 		sta	PSG_LATCH_ADDR
+   096C B6 CC 02      [ 5]  147 		lda	PSG_READ_ADDR
+   096F 43            [ 2]  148 		coma
+   0970 84 30         [ 2]  149 		anda	#0b00110000
+   0972 48            [ 2]  150 		lsla
+   0973 48            [ 2]  151 		lsla
+   0974 A7 61         [ 5]  152 		sta	1,s
+                            153 
+   0976 B6 CC 0E      [ 5]  154 		lda	CTLR_SET_SELECT	;read up, down, left, right, B, C
+   0979 86 0E         [ 2]  155 		lda	#PSG_IO_A
+   097B B7 CC 02      [ 5]  156 		sta	PSG_LATCH_ADDR
+   097E B6 CC 02      [ 5]  157 		lda	PSG_READ_ADDR
+   0981 43            [ 2]  158 		coma
+   0982 84 3F         [ 2]  159 		anda	#0b00111111
+   0984 AA E4         [ 4]  160 		ora	,s
+   0986 A7 E4         [ 4]  161 		sta	,s
+   0988 86 0F         [ 2]  162 		lda	#PSG_IO_B
+   098A B7 CC 02      [ 5]  163 		sta	PSG_LATCH_ADDR
+   098D B6 CC 02      [ 5]  164 		lda	PSG_READ_ADDR
+   0990 43            [ 2]  165 		coma
+   0991 84 3F         [ 2]  166 		anda	#0b00111111
+   0993 AA 61         [ 5]  167 		ora	1,s
+   0995 A7 61         [ 5]  168 		sta	1,s
+   0997 35 86         [ 8]  169 		puls	a,b,pc		;return controller states in A and B
+                            170 
+                            421 
+                            422 ;------------------------------------------------------------------------------
+                            423 ; static data
+                            424 ;------------------------------------------------------------------------------
+                            425 
+                            426 ; VDP register values
+   0999 00                  427 vdp_regs:	.fcb	0x00			;Graphics I
+   099A 80                  428 		.fcb	0x80			;Graphics I, 16K, display off
+   099B 05                  429 		.fcb	NAMETABLE/0x0400
+   099C 80                  430 		.fcb	COLORTABLE/0x0040
+   099D 01                  431 		.fcb	PATTABLE/0x0800
+   099E 20                  432 		.fcb	SPRATTABLE/0x0080
+   099F 00                  433 		.fcb	SPRPATTABLE/0x0800
+   09A0 01                  434 		.fcb	0x01			;black background
+                            435 
+                            436 ; patterns
+                            437 CELLPATS:	.include "cells32.inc"
+                              1 ; char 0
+   09A1 00                    2 	.fcb	0b00000000
+   09A2 00                    3 	.fcb	0b00000000
+   09A3 00                    4 	.fcb	0b00000000
+   09A4 00                    5 	.fcb	0b00000000
+   09A5 00                    6 	.fcb	0b00000000
+   09A6 00                    7 	.fcb	0b00000000
+   09A7 00                    8 	.fcb	0b00000000
+   09A8 00                    9 	.fcb	0b00000000
+                             10 ; char 1
+   09A9 00                   11 	.fcb	0b00000000
+   09AA 00                   12 	.fcb	0b00000000
+   09AB 00                   13 	.fcb	0b00000000
+   09AC 00                   14 	.fcb	0b00000000
+   09AD 00                   15 	.fcb	0b00000000
+   09AE 00                   16 	.fcb	0b00000000
+   09AF 00                   17 	.fcb	0b00000000
+   09B0 00                   18 	.fcb	0b00000000
+                             19 ; char 2
+   09B1 00                   20 	.fcb	0b00000000
+   09B2 00                   21 	.fcb	0b00000000
+   09B3 00                   22 	.fcb	0b00000000
+   09B4 00                   23 	.fcb	0b00000000
+   09B5 00                   24 	.fcb	0b00000000
+   09B6 11                   25 	.fcb	0b00010001
+   09B7 00                   26 	.fcb	0b00000000
+   09B8 00                   27 	.fcb	0b00000000
+                             28 ; char 3
+   09B9 00                   29 	.fcb	0b00000000
+   09BA 00                   30 	.fcb	0b00000000
+   09BB 00                   31 	.fcb	0b00000000
+   09BC 00                   32 	.fcb	0b00000000
+   09BD 00                   33 	.fcb	0b00000000
+   09BE 10                   34 	.fcb	0b00010000
+   09BF 01                   35 	.fcb	0b00000001
+   09C0 00                   36 	.fcb	0b00000000
+                             37 ; char 4
+   09C1 00                   38 	.fcb	0b00000000
+   09C2 00                   39 	.fcb	0b00000000
+   09C3 92                   40 	.fcb	0b10010010
+   09C4 00                   41 	.fcb	0b00000000
+   09C5 10                   42 	.fcb	0b00010000
+   09C6 09                   43 	.fcb	0b00001001
+   09C7 00                   44 	.fcb	0b00000000
+   09C8 80                   45 	.fcb	0b10000000
+                             46 ; char 5
+   09C9 00                   47 	.fcb	0b00000000
+   09CA 01                   48 	.fcb	0b00000001
+   09CB 48                   49 	.fcb	0b01001000
+   09CC 00                   50 	.fcb	0b00000000
+   09CD 04                   51 	.fcb	0b00000100
+   09CE 20                   52 	.fcb	0b00100000
+   09CF 02                   53 	.fcb	0b00000010
+   09D0 80                   54 	.fcb	0b10000000
+                             55 ; char 6
+   09D1 00                   56 	.fcb	0b00000000
+   09D2 2A                   57 	.fcb	0b00101010
+   09D3 00                   58 	.fcb	0b00000000
+   09D4 92                   59 	.fcb	0b10010010
+   09D5 00                   60 	.fcb	0b00000000
+   09D6 55                   61 	.fcb	0b01010101
+   09D7 00                   62 	.fcb	0b00000000
+   09D8 49                   63 	.fcb	0b01001001
+                             64 ; char 7
+   09D9 00                   65 	.fcb	0b00000000
+   09DA AA                   66 	.fcb	0b10101010
+   09DB 00                   67 	.fcb	0b00000000
+   09DC 49                   68 	.fcb	0b01001001
+   09DD 02                   69 	.fcb	0b00000010
+   09DE 50                   70 	.fcb	0b01010000
+   09DF 05                   71 	.fcb	0b00000101
+   09E0 20                   72 	.fcb	0b00100000
+                             73 ; char 8
+   09E1 21                   74 	.fcb	0b00100001
+   09E2 94                   75 	.fcb	0b10010100
+   09E3 21                   76 	.fcb	0b00100001
+   09E4 14                   77 	.fcb	0b00010100
+   09E5 42                   78 	.fcb	0b01000010
+   09E6 28                   79 	.fcb	0b00101000
+   09E7 45                   80 	.fcb	0b01000101
+   09E8 10                   81 	.fcb	0b00010000
+                             82 ; char 9
+   09E9 08                   83 	.fcb	0b00001000
+   09EA A2                   84 	.fcb	0b10100010
+   09EB 14                   85 	.fcb	0b00010100
+   09EC 40                   86 	.fcb	0b01000000
+   09ED 95                   87 	.fcb	0b10010101
+   09EE 48                   88 	.fcb	0b01001000
+   09EF 12                   89 	.fcb	0b00010010
+   09F0 88                   90 	.fcb	0b10001000
+                             91 ; char 10
+   09F1 92                   92 	.fcb	0b10010010
+   09F2 49                   93 	.fcb	0b01001001
+   09F3 94                   94 	.fcb	0b10010100
+   09F4 A2                   95 	.fcb	0b10100010
+   09F5 15                   96 	.fcb	0b00010101
+   09F6 52                   97 	.fcb	0b01010010
+   09F7 89                   98 	.fcb	0b10001001
+   09F8 A9                   99 	.fcb	0b10101001
+                            100 ; char 11
+   09F9 49                  101 	.fcb	0b01001001
+   09FA 24                  102 	.fcb	0b00100100
+   09FB 92                  103 	.fcb	0b10010010
+   09FC 49                  104 	.fcb	0b01001001
+   09FD 54                  105 	.fcb	0b01010100
+   09FE 22                  106 	.fcb	0b00100010
+   09FF 48                  107 	.fcb	0b01001000
+   0A00 2A                  108 	.fcb	0b00101010
+                            109 ; char 12
+   0A01 55                  110 	.fcb	0b01010101
+   0A02 49                  111 	.fcb	0b01001001
+   0A03 AA                  112 	.fcb	0b10101010
+   0A04 29                  113 	.fcb	0b00101001
+   0A05 A5                  114 	.fcb	0b10100101
+   0A06 AA                  115 	.fcb	0b10101010
+   0A07 92                  116 	.fcb	0b10010010
+   0A08 55                  117 	.fcb	0b01010101
+                            118 ; char 13
+   0A09 55                  119 	.fcb	0b01010101
+   0A0A 24                  120 	.fcb	0b00100100
+   0A0B AA                  121 	.fcb	0b10101010
+   0A0C 25                  122 	.fcb	0b00100101
+   0A0D 54                  123 	.fcb	0b01010100
+   0A0E AA                  124 	.fcb	0b10101010
+   0A0F 4A                  125 	.fcb	0b01001010
+   0A10 52                  126 	.fcb	0b01010010
+                            127 ; char 14
+   0A11 55                  128 	.fcb	0b01010101
+   0A12 AA                  129 	.fcb	0b10101010
+   0A13 AA                  130 	.fcb	0b10101010
+   0A14 55                  131 	.fcb	0b01010101
+   0A15 AA                  132 	.fcb	0b10101010
+   0A16 AA                  133 	.fcb	0b10101010
+   0A17 AA                  134 	.fcb	0b10101010
+   0A18 AA                  135 	.fcb	0b10101010
+                            136 ; char 15
+   0A19 55                  137 	.fcb	0b01010101
+   0A1A AA                  138 	.fcb	0b10101010
+   0A1B AA                  139 	.fcb	0b10101010
+   0A1C 55                  140 	.fcb	0b01010101
+   0A1D AA                  141 	.fcb	0b10101010
+   0A1E AA                  142 	.fcb	0b10101010
+   0A1F AA                  143 	.fcb	0b10101010
+   0A20 AA                  144 	.fcb	0b10101010
+                            145 ; char 16
+   0A21 55                  146 	.fcb	0b01010101
+   0A22 B6                  147 	.fcb	0b10110110
+   0A23 D5                  148 	.fcb	0b11010101
+   0A24 55                  149 	.fcb	0b01010101
+   0A25 B6                  150 	.fcb	0b10110110
+   0A26 AB                  151 	.fcb	0b10101011
+   0A27 D5                  152 	.fcb	0b11010101
+   0A28 B5                  153 	.fcb	0b10110101
+                            154 ; char 17
+   0A29 55                  155 	.fcb	0b01010101
+   0A2A DA                  156 	.fcb	0b11011010
+   0A2B 55                  157 	.fcb	0b01010101
+   0A2C 6D                  158 	.fcb	0b01101101
+   0A2D AB                  159 	.fcb	0b10101011
+   0A2E 55                  160 	.fcb	0b01010101
+   0A2F 6B                  161 	.fcb	0b01101011
+   0A30 5A                  162 	.fcb	0b01011010
+                            163 ; char 18
+   0A31 B6                  164 	.fcb	0b10110110
+   0A32 DB                  165 	.fcb	0b11011011
+   0A33 6A                  166 	.fcb	0b01101010
+   0A34 5B                  167 	.fcb	0b01011011
+   0A35 6D                  168 	.fcb	0b01101101
+   0A36 6B                  169 	.fcb	0b01101011
+   0A37 5D                  170 	.fcb	0b01011101
+   0A38 D5                  171 	.fcb	0b11010101
+                            172 ; char 19
+   0A39 DB                  173 	.fcb	0b11011011
+   0A3A 6D                  174 	.fcb	0b01101101
+   0A3B B5                  175 	.fcb	0b10110101
+   0A3C AD                  176 	.fcb	0b10101101
+   0A3D 6A                  177 	.fcb	0b01101010
+   0A3E 6E                  178 	.fcb	0b01101110
+   0A3F B5                  179 	.fcb	0b10110101
+   0A40 56                  180 	.fcb	0b01010110
+                            181 ; char 20
+   0A41 BD                  182 	.fcb	0b10111101
+   0A42 AD                  183 	.fcb	0b10101101
+   0A43 EF                  184 	.fcb	0b11101111
+   0A44 6B                  185 	.fcb	0b01101011
+   0A45 DD                  186 	.fcb	0b11011101
+   0A46 ED                  187 	.fcb	0b11101101
+   0A47 B7                  188 	.fcb	0b10110111
+   0A48 BA                  189 	.fcb	0b10111010
+                            190 ; char 21
+   0A49 EF                  191 	.fcb	0b11101111
+   0A4A 6A                  192 	.fcb	0b01101010
+   0A4B 7B                  193 	.fcb	0b01111011
+   0A4C 5A                  194 	.fcb	0b01011010
+   0A4D EF                  195 	.fcb	0b11101111
+   0A4E 6A                  196 	.fcb	0b01101010
+   0A4F BD                  197 	.fcb	0b10111101
+   0A50 D7                  198 	.fcb	0b11010111
+                            199 ; char 22
+   0A51 FF                  200 	.fcb	0b11111111
+   0A52 AA                  201 	.fcb	0b10101010
+   0A53 FF                  202 	.fcb	0b11111111
+   0A54 AA                  203 	.fcb	0b10101010
+   0A55 FF                  204 	.fcb	0b11111111
+   0A56 AA                  205 	.fcb	0b10101010
+   0A57 FF                  206 	.fcb	0b11111111
+   0A58 55                  207 	.fcb	0b01010101
+                            208 ; char 23
+   0A59 FF                  209 	.fcb	0b11111111
+   0A5A AA                  210 	.fcb	0b10101010
+   0A5B FF                  211 	.fcb	0b11111111
+   0A5C AA                  212 	.fcb	0b10101010
+   0A5D FF                  213 	.fcb	0b11111111
+   0A5E AA                  214 	.fcb	0b10101010
+   0A5F FF                  215 	.fcb	0b11111111
+   0A60 55                  216 	.fcb	0b01010101
+                            217 ; char 24
+   0A61 FF                  218 	.fcb	0b11111111
+   0A62 DB                  219 	.fcb	0b11011011
+   0A63 FF                  220 	.fcb	0b11111111
+   0A64 B6                  221 	.fcb	0b10110110
+   0A65 FF                  222 	.fcb	0b11111111
+   0A66 DA                  223 	.fcb	0b11011010
+   0A67 BF                  224 	.fcb	0b10111111
+   0A68 ED                  225 	.fcb	0b11101101
+                            226 ; char 25
+   0A69 FF                  227 	.fcb	0b11111111
+   0A6A 6D                  228 	.fcb	0b01101101
+   0A6B FF                  229 	.fcb	0b11111111
+   0A6C DB                  230 	.fcb	0b11011011
+   0A6D FF                  231 	.fcb	0b11111111
+   0A6E AD                  232 	.fcb	0b10101101
+   0A6F FF                  233 	.fcb	0b11111111
+   0A70 ED                  234 	.fcb	0b11101101
+                            235 ; char 26
+   0A71 FF                  236 	.fcb	0b11111111
+   0A72 FF                  237 	.fcb	0b11111111
+   0A73 6D                  238 	.fcb	0b01101101
+   0A74 FF                  239 	.fcb	0b11111111
+   0A75 FF                  240 	.fcb	0b11111111
+   0A76 6D                  241 	.fcb	0b01101101
+   0A77 FF                  242 	.fcb	0b11111111
+   0A78 FF                  243 	.fcb	0b11111111
+                            244 ; char 27
+   0A79 FF                  245 	.fcb	0b11111111
+   0A7A FF                  246 	.fcb	0b11111111
+   0A7B B7                  247 	.fcb	0b10110111
+   0A7C FE                  248 	.fcb	0b11111110
+   0A7D FB                  249 	.fcb	0b11111011
+   0A7E BF                  250 	.fcb	0b10111111
+   0A7F FE                  251 	.fcb	0b11111110
+   0A80 EF                  252 	.fcb	0b11101111
+                            253 ; char 28
+   0A81 FF                  254 	.fcb	0b11111111
+   0A82 FF                  255 	.fcb	0b11111111
+   0A83 FF                  256 	.fcb	0b11111111
+   0A84 FF                  257 	.fcb	0b11111111
+   0A85 EE                  258 	.fcb	0b11101110
+   0A86 FF                  259 	.fcb	0b11111111
+   0A87 FF                  260 	.fcb	0b11111111
+   0A88 FF                  261 	.fcb	0b11111111
+                            262 ; char 29
+   0A89 FF                  263 	.fcb	0b11111111
+   0A8A FF                  264 	.fcb	0b11111111
+   0A8B FF                  265 	.fcb	0b11111111
+   0A8C FF                  266 	.fcb	0b11111111
+   0A8D FF                  267 	.fcb	0b11111111
+   0A8E F7                  268 	.fcb	0b11110111
+   0A8F BF                  269 	.fcb	0b10111111
+   0A90 FF                  270 	.fcb	0b11111111
+                            271 ; char 30
+   0A91 FF                  272 	.fcb	0b11111111
+   0A92 FF                  273 	.fcb	0b11111111
+   0A93 FF                  274 	.fcb	0b11111111
+   0A94 FF                  275 	.fcb	0b11111111
+   0A95 FF                  276 	.fcb	0b11111111
+   0A96 FF                  277 	.fcb	0b11111111
+   0A97 FF                  278 	.fcb	0b11111111
+   0A98 FF                  279 	.fcb	0b11111111
+                            280 ; char 31
+   0A99 FF                  281 	.fcb	0b11111111
+   0A9A FF                  282 	.fcb	0b11111111
+   0A9B FF                  283 	.fcb	0b11111111
+   0A9C FF                  284 	.fcb	0b11111111
+   0A9D FF                  285 	.fcb	0b11111111
+   0A9E FF                  286 	.fcb	0b11111111
+   0A9F FF                  287 	.fcb	0b11111111
+   0AA0 FF                  288 	.fcb	0b11111111
+                     0AA1   438 CELLPATS_END	.equ	.
+                            439 
+                            440 CHARS:		.include "chars.inc"
+                              1 ; char 0
+   0AA1 00                    2 	.fcb	0b00000000
+   0AA2 E9                    3 	.fcb	0b11101001
+   0AA3 A9                    4 	.fcb	0b10101001
+   0AA4 AD                    5 	.fcb	0b10101101
+   0AA5 E9                    6 	.fcb	0b11101001
+   0AA6 29                    7 	.fcb	0b00101001
+   0AA7 29                    8 	.fcb	0b00101001
+   0AA8 E9                    9 	.fcb	0b11101001
+                             10 ; char 1
+   0AA9 00                   11 	.fcb	0b00000000
+   0AAA 35                   12 	.fcb	0b00110101
+   0AAB 11                   13 	.fcb	0b00010001
+   0AAC D5                   14 	.fcb	0b11010101
+   0AAD 55                   15 	.fcb	0b01010101
+   0AAE 55                   16 	.fcb	0b01010101
+   0AAF 55                   17 	.fcb	0b01010101
+   0AB0 55                   18 	.fcb	0b01010101
+                             19 ; char 2
+   0AB1 00                   20 	.fcb	0b00000000
+   0AB2 80                   21 	.fcb	0b10000000
+   0AB3 00                   22 	.fcb	0b00000000
+   0AB4 B8                   23 	.fcb	0b10111000
+   0AB5 28                   24 	.fcb	0b00101000
+   0AB6 38                   25 	.fcb	0b00111000
+   0AB7 20                   26 	.fcb	0b00100000
+   0AB8 39                   27 	.fcb	0b00111001
+                             28 ; char 3
+   0AB9 00                   29 	.fcb	0b00000000
+   0ABA 20                   30 	.fcb	0b00100000
+   0ABB 20                   31 	.fcb	0b00100000
+   0ABC 3A                   32 	.fcb	0b00111010
+   0ABD 2A                   33 	.fcb	0b00101010
+   0ABE 2B                   34 	.fcb	0b00101011
+   0ABF 28                   35 	.fcb	0b00101000
+   0AC0 3B                   36 	.fcb	0b00111011
+                             37 ; char 4
+   0AC1 00                   38 	.fcb	0b00000000
+   0AC2 00                   39 	.fcb	0b00000000
+   0AC3 00                   40 	.fcb	0b00000000
+   0AC4 8F                   41 	.fcb	0b10001111
+   0AC5 8A                   42 	.fcb	0b10001010
+   0AC6 8A                   43 	.fcb	0b10001010
+   0AC7 8A                   44 	.fcb	0b10001010
+   0AC8 8A                   45 	.fcb	0b10001010
+                             46 ; char 5
+   0AC9 00                   47 	.fcb	0b00000000
+   0ACA 02                   48 	.fcb	0b00000010
+   0ACB 02                   49 	.fcb	0b00000010
+   0ACC BB                   50 	.fcb	0b10111011
+   0ACD 8A                   51 	.fcb	0b10001010
+   0ACE BA                   52 	.fcb	0b10111010
+   0ACF AA                   53 	.fcb	0b10101010
+   0AD0 BA                   54 	.fcb	0b10111010
+                             55 ; char 6
+   0AD1 00                   56 	.fcb	0b00000000
+   0AD2 40                   57 	.fcb	0b01000000
+   0AD3 40                   58 	.fcb	0b01000000
+   0AD4 63                   59 	.fcb	0b01100011
+   0AD5 42                   60 	.fcb	0b01000010
+   0AD6 43                   61 	.fcb	0b01000011
+   0AD7 40                   62 	.fcb	0b01000000
+   0AD8 43                   63 	.fcb	0b01000011
+                             64 ; char 7
+   0AD9 00                   65 	.fcb	0b00000000
+   0ADA 00                   66 	.fcb	0b00000000
+   0ADB 00                   67 	.fcb	0b00000000
+   0ADC BB                   68 	.fcb	0b10111011
+   0ADD 0A                   69 	.fcb	0b00001010
+   0ADE BA                   70 	.fcb	0b10111010
+   0ADF AA                   71 	.fcb	0b10101010
+   0AE0 BA                   72 	.fcb	0b10111010
+                             73 ; char 8
+   0AE1 00                   74 	.fcb	0b00000000
+   0AE2 00                   75 	.fcb	0b00000000
+   0AE3 00                   76 	.fcb	0b00000000
+   0AE4 77                   77 	.fcb	0b01110111
+   0AE5 55                   78 	.fcb	0b01010101
+   0AE6 55                   79 	.fcb	0b01010101
+   0AE7 55                   80 	.fcb	0b01010101
+   0AE8 57                   81 	.fcb	0b01010111
+                             82 ; char 9
+   0AE9 00                   83 	.fcb	0b00000000
+   0AEA 6C                   84 	.fcb	0b01101100
+   0AEB 48                   85 	.fcb	0b01001000
+   0AEC 6C                   86 	.fcb	0b01101100
+   0AED 48                   87 	.fcb	0b01001000
+   0AEE 48                   88 	.fcb	0b01001000
+   0AEF 48                   89 	.fcb	0b01001000
+   0AF0 48                   90 	.fcb	0b01001000
+                             91 ; char 10
+   0AF1 00                   92 	.fcb	0b00000000
+   0AF2 00                   93 	.fcb	0b00000000
+   0AF3 00                   94 	.fcb	0b00000000
+   0AF4 14                   95 	.fcb	0b00010100
+   0AF5 14                   96 	.fcb	0b00010100
+   0AF6 14                   97 	.fcb	0b00010100
+   0AF7 14                   98 	.fcb	0b00010100
+   0AF8 94                   99 	.fcb	0b10010100
+                            100 ; char 11
+   0AF9 00                  101 	.fcb	0b00000000
+   0AFA 00                  102 	.fcb	0b00000000
+   0AFB 00                  103 	.fcb	0b00000000
+   0AFC 77                  104 	.fcb	0b01110111
+   0AFD 15                  105 	.fcb	0b00010101
+   0AFE 35                  106 	.fcb	0b00110101
+   0AFF 15                  107 	.fcb	0b00010101
+   0B00 77                  108 	.fcb	0b01110111
+                            109 ; char 12
+   0B01 00                  110 	.fcb	0b00000000
+   0B02 00                  111 	.fcb	0b00000000
+   0B03 00                  112 	.fcb	0b00000000
+   0B04 1D                  113 	.fcb	0b00011101
+   0B05 05                  114 	.fcb	0b00000101
+   0B06 1D                  115 	.fcb	0b00011101
+   0B07 11                  116 	.fcb	0b00010001
+   0B08 1D                  117 	.fcb	0b00011101
+                            118 ; char 13
+   0B09 00                  119 	.fcb	0b00000000
+   0B0A 00                  120 	.fcb	0b00000000
+   0B0B 00                  121 	.fcb	0b00000000
+   0B0C D7                  122 	.fcb	0b11010111
+   0B0D 55                  123 	.fcb	0b01010101
+   0B0E 55                  124 	.fcb	0b01010101
+   0B0F 55                  125 	.fcb	0b01010101
+   0B10 D7                  126 	.fcb	0b11010111
+                     0B11   441 CHARS_END	.equ	.
+                            442 
+   0B11 40 40 40 40         443 COLORS:		.fcb	0x40,0x40,0x40,0x40
+   0B15 24 24 24 24         444 		.fcb	0x24,0x24,0x24,0x24
+   0B19 B2 B2 B2 B2         445 		.fcb	0xB2,0xB2,0xB2,0xB2
+   0B1D 8B 8B 8B 8B         446 		.fcb	0x8B,0x8B,0x8B,0x8B
+   0B21 E0 E0 E0 E0         447 		.fcb	0xE0,0xE0,0xE0,0xE0
+   0B25 00 00 00 00 00 00   448 		.fcb	0,0,0,0,0,0,0,0
+        00 00
+   0B2D 00 00 00 00 00 00   449 		.fcb	0,0,0,0,0,0,0,0
+        00 00
+                     0B35   450 COLORS_END	.equ	.
+                            451 
+                            452 ; about message
+   0B35 80 81 82 83 84 85   453 message:	.fcb	0x80,0x81,0x82,0x83,0x84,0x85,0x86
+        86
+   0B3C 87 88 89 8A 8B 8C   454 		.fcb	0x87,0x88,0x89,0x8a,0x8b,0x8c,0x8d,0x00
+        8D 00
+                            455 
+                            456 ; cell state transition table
+                            457 ; bit 0: alive/dead, bits 4-1: number of neighbors
+   0B44 00                  458 STATETABLE:	.fcb	0		;0b00000 (dead,  0 neighbors)
+   0B45 00                  459 		.fcb	0		;0b00001 (alive, 0 neighbors)
+   0B46 00                  460 		.fcb	0		;0b00010 (dead,  1 neighbor)
+   0B47 00                  461 		.fcb	0		;0b00011 (alive, 1 neighbor)
+   0B48 00                  462 		.fcb	0		;0b00100 (dead,  2 neighbors)
+   0B49 01                  463 		.fcb	1		;0b00101 (alive, 2 neighbors)
+   0B4A 01                  464 		.fcb	1		;0b00110 (dead,  3 neighbors)
+   0B4B 01                  465 		.fcb	1		;0b00111 (alive, 3 neighbors)
+   0B4C 00                  466 		.fcb	0		;0b01000 (dead,  4 neighbors)
+   0B4D 00                  467 		.fcb	0		;0b01001 (alive, 4 neighbors)
+   0B4E 00                  468 		.fcb	0		;0b01010 (dead,  5 neighbors)
+   0B4F 00                  469 		.fcb	0		;0b01011 (alive, 5 neighbors)
+   0B50 00                  470 		.fcb	0		;0b01100 (dead,  6 neighbors)
+   0B51 00                  471 		.fcb	0		;0b01101 (alive, 6 neighbors)
+   0B52 00                  472 		.fcb	0		;0b01110 (dead,  7 neighbors)
+   0B53 00                  473 		.fcb	0		;0b01111 (alive, 7 neighbors)
+   0B54 00                  474 		.fcb	0		;0b10000 (dead,  8 neighbors)
+   0B55 00                  475 		.fcb	0		;0b10001 (alive, 8 neighbors)
+                            476 
+                            477 ; note frequencies
+   0B56                     478 NOTES:		;.fdb	35,39,47,53,59
+                            479 		;.fdb	71,79,94,106,119
+   0B56 00 8E 00 9F 00 BD   480 		.fdb	142,159,189,212,238
+        00 D4 00 EE
+   0B60 01 1C 01 3E 01 7B   481 		.fdb	284,318,379,425,477
+        01 A9 01 DD
+   0B6A 02 38 02 7D 02 F6   482 		.fdb	568,637,758,851,955
+        03 53 03 BB
+   0B74 04 70               483 		.fdb	1136;,1275,1516,1702,1911
+                            484 		;.fdb	1911,1911
+                            485 
+                            486 
+                            487 ;------------------------------------------------------------------------------
+                            488 ; variables
+                            489 ;------------------------------------------------------------------------------
+                            490 
+                            491 ; two grid buffers for cell state
+                            492 ; each entry is either 0 (dead) or 1 (alive)
+   0B76                     493 GRID1:		.rmb	GRID_SIZE
+   0E76                     494 GRID2:		.rmb	GRID_SIZE
+                            495 
+                            496 ; visual representation of the cells (name table)
+   1176                     497 DISPLAYGRID:	.rmb	GRID_SIZE
+                            498 
+   1476                     499 CURRENTGRID:	.rmb	2		;pointer to GRID1 or GRID2
+   1478                     500 NEXTGRID:	.rmb	2		;pointer to GRID1 or GRID2
+   147A                     501 ANIMFRAME:	.rmb	1		;current frame counter
+   147B                     502 ANIMDELAY:	.rmb	1		;frames per life iteration
+                            503 
+                            504 ; counters used for sound generation
+   147C                     505 LIVINGCELLS:	.rmb	1
+   147D                     506 DYINGCELLS:	.rmb	1
+                            507 
+   147E                     508 CTLRSTATE:	.rmb	1		;controller state

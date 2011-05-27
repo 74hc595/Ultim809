@@ -1,0 +1,1251 @@
+                              1 ; vim:noet:sw=8:ts=8:ai:syn=as6809
+                              2 ; Matt Sarnoff (msarnoff.org/6809) - May 13, 2010
+                              3 ;
+                              4 ; Plasma effect.
+                              5 
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                              9 	.list
+                             10 
+                             11 	;.define SOUND
+                             12 
+                             13 ; VRAM addresses (for Graphics I)
+                     0000    14 SPRPATTABLE	.equ	0x0000
+                     0800    15 PATTABLE	.equ	0x0800
+                     1000    16 SPRATTABLE	.equ	0x1000
+                     1400    17 NAMETABLE	.equ	0x1400
+                     2000    18 COLORTABLE	.equ	0x2000
+                             19 
+                             20 ; Parameters
+                     0020    21 GRID_WIDTH	.equ	32
+                     0022    22 GRID_HEIGHT	.equ	34
+                     0440    23 GRID_SIZE	.equ	GRID_WIDTH*GRID_HEIGHT
+                     0008    24 NUM_COLORS	.equ	8
+                             25 
+                             26 ;------------------------------------------------------------------------------
+                             27 ; variables
+                             28 ;------------------------------------------------------------------------------
+                             29 
+                             30 ; variables in direct page
+                     0080    31 VARSTART	.equ	0x80
+                             32 
+                             33 ; grid pointers
+                     0080    34 CURRENTGRID	.equ	VARSTART	;pointer to GRID1 or GRID2
+                     0082    35 NEXTGRID	.equ	VARSTART+2	;pointer to GRID1 or GRID2
+                             36 
+                     0085    37 T		.equ	VARSTART+5
+                     0086    38 T_3		.equ	VARSTART+6
+                     0087    39 DIV3_COUNT	.equ	VARSTART+7
+                     0088    40 SIN_T		.equ	VARSTART+8
+                     0089    41 SIN_T_3		.equ	VARSTART+9
+                             42 
+                             43 ; evaluation function pointer
+                     008A    44 PLASMA_FN	.equ	VARSTART+10
+                             45 
+                             46 ; temporary values usable by computation functions
+                     008C    47 TEMP1		.equ	VARSTART+12
+                     008D    48 TEMP2		.equ	VARSTART+13
+                             49 
+                             50 ;------------------------------------------------------------------------------
+                             51 ; setup
+                             52 ;------------------------------------------------------------------------------
+                             53 	.area	_CODE(ABS)
+   0100                      54 	.org	USERPROG_ORG
+   0100 10 CE 80 00   [ 4]   55 		lds	#RAMEND+1	;set up stack pointer
+   0104 CC 01 DB      [ 3]   56 		ldd	#VBLANK		;set up interrupt vector
+   0107 FD 00 08      [ 6]   57 		std	IRQVEC
+   010A BD E1 20      [ 8]   58 		jsr	VDP_CLEAR	;clear VRAM
+   010D 8E 0C 1C      [ 3]   59 		ldx	#vdp_regs	;initialize VDP registers
+   0110 BD E1 54      [ 8]   60 		jsr	VDP_SET_REGS
+                             61 
+                             62 ; set up the pattern table
+   0113 CC 48 00      [ 3]   63 		ldd	#(VRAM|PATTABLE)
+   0116 F7 CC 01      [ 5]   64 		stb	VDP_REG
+   0119 B7 CC 01      [ 5]   65 		sta	VDP_REG
+   011C 86 08         [ 2]   66 		lda	#NUM_COLORS	;write 8 copies of the cell patterns
+   011E 34 02         [ 6]   67 		pshs	a
+   0120 8E 0D 24      [ 3]   68 loadcellpats:	ldx	#CELLPATS
+   0123 C6 10         [ 2]   69 		ldb	#16
+   0125 BD E1 63      [ 8]   70 		jsr	VDP_LOADPATS
+   0128 6A E4         [ 6]   71 		dec	,s
+   012A 26 F4         [ 3]   72 		bne	loadcellpats
+   012C 35 02         [ 6]   73 		puls	a
+                             74 
+                             75 ; set up the color table
+   012E CC 60 00      [ 3]   76 		ldd	#(VRAM|COLORTABLE)
+   0131 F7 CC 01      [ 5]   77 		stb	VDP_REG
+   0134 B7 CC 01      [ 5]   78 		sta	VDP_REG
+   0137 8E 0D A4      [ 3]   79 		ldx	#COLORS
+   013A C6 02         [ 2]   80 		ldb	#2		;2*8 = 16 bytes
+   013C BD E1 63      [ 8]   81 		jsr	VDP_LOADPATS
+                             82 
+                             83 ; set up variables
+   013F CC 0D B4      [ 3]   84 		ldd	#GRID1
+   0142 DD 80         [ 5]   85 		std	*CURRENTGRID
+   0144 CC 11 F4      [ 3]   86 		ldd	#GRID2
+   0147 DD 82         [ 5]   87 		std	*NEXTGRID
+   0149 0F 85         [ 6]   88 		clr	*T
+   014B 0F 86         [ 6]   89 		clr	*T_3
+   014D 86 03         [ 2]   90 		lda	#3
+   014F 97 87         [ 4]   91 		sta	*DIV3_COUNT
+   0151 CC 01 C1      [ 3]   92 		ldd	#WAVE2
+   0154 DD 8A         [ 5]   93 		std	*PLASMA_FN
+                             94 
+                     0000    95 	.ifdef	SOUND
+                             96 ; set up sound
+                             97 		ldd	#(PSG_CTRL<<8)|TONE_AB|NOISE_NONE
+                             98 		std	PSG
+                             99 		ldd	#(PSG_A_AMPL<<8)|15;ENV_ENABLE
+                            100 		std	PSG
+                            101 		ldd	#(PSG_B_AMPL<<8)|15;ENV_ENABLE
+                            102 		std	PSG
+                            103 
+                            104 		ldd	#(PSG_ENV_SHAPE<<9)|8
+                            105 		std	PSG
+                            106 	.endif
+                            107 
+                            108 ; enable interrupts
+   0156 1C EF         [ 3]  109 		andcc	#0b11101111
+                            110 
+                            111 ; turn on the display, enable vertical blanking interrupt
+   0158 CC E0 81      [ 3]  112 		ldd	#0xE081		;set bits 6 and 5 of register 1
+   015B B7 CC 01      [ 5]  113 		sta	VDP_REG
+   015E F7 CC 01      [ 5]  114 		stb	VDP_REG
+   0161 7E 01 64      [ 4]  115 		jmp	loop
+                            116 
+                            117 
+                            118 ;------------------------------------------------------------------------------
+                            119 ; logic update routine
+                            120 ;------------------------------------------------------------------------------
+   0164                     121 loop:	
+                            122 ; iterate and generate NEXTGRID
+   0164 10 9E 82      [ 6]  123 		ldy	*NEXTGRID
+   0167 CC 20 18      [ 3]  124 		ldd	#(32<<8)|24	;initialize x and y counters
+   016A 34 06         [ 7]  125 		pshs	d
+                            126 
+   016C CE 0C A4      [ 3]  127 		ldu	#SIN8
+   016F DC 85         [ 5]  128 		ldd	*T		;take sin of T and T/3
+   0171 A6 C6         [ 5]  129 		lda	a,u
+   0173 E6 C5         [ 5]  130 		ldb	b,u
+   0175 DD 88         [ 5]  131 		std	*SIN_T
+                            132 
+                            133 ; x is in ,s and y is in 1,s
+   0177                     134 yloop:
+                            135 ;---- inner loop
+   0177 86 20         [ 2]  136 		lda	#32
+   0179 A7 E4         [ 4]  137 		sta	,s
+                            138 ;-------- calculation
+   017B 6E 9F 00 8A   [ 8]  139 xloop:		jmp	[PLASMA_FN]
+   017F 84 7F         [ 2]  140 setcell:	anda	#0b01111111
+   0181 A7 A0         [ 6]  141 		sta	,y+
+                            142 ;-------- end calculation
+   0183 6A E4         [ 6]  143 		dec	,s
+   0185 26 F4         [ 3]  144 		bne	xloop
+                            145 ;---- end inner loop
+   0187 6A 61         [ 7]  146 		dec	1,s
+   0189 26 EC         [ 3]  147 		bne	yloop
+                            148 
+                            149 ; advance timers
+   018B 0C 85         [ 6]  150 		inc	*T
+   018D 0A 87         [ 6]  151 		dec	*DIV3_COUNT
+   018F 26 02         [ 3]  152 		bne	flipbuffers
+   0191 0C 86         [ 6]  153 		inc	*T_3
+                            154 
+                            155 ; flip buffers
+   0193 9E 80         [ 5]  156 flipbuffers:	ldx	*CURRENTGRID
+   0195 DE 82         [ 5]  157 		ldu	*NEXTGRID
+   0197 DF 80         [ 5]  158 		stu	*CURRENTGRID
+   0199 9F 82         [ 5]  159 		stx	*NEXTGRID
+                            160 
+                     0000   161 	.ifdef	SOUND
+                            162 ; update sound
+                            163 		;lda	#0x03
+                            164 		clrb
+                            165 		ldx	#GRID1
+                            166 		;ldb	*SIN_T_3
+                            167 		lda	,x
+                            168 		jsr	PSG_SET_AFREQ
+                            169 
+                            170 		lda	#0x00
+                            171 		ldx	#GRID1+400
+                            172 		;ldb	*SIN_T
+                            173 		ldb	,x
+                            174 		negb
+                            175 		jsr	PSG_SET_BFREQ
+                            176 
+                            177 		;ldb	*SIN_T_3
+                            178 		;ldb	GRID1+234
+                            179 		;lda	#1
+                            180 		;jsr	PSG_SET_EFREQ
+                            181 	.endif
+   019B 13            [ 4]  182 		sync
+   019C 7E 01 64      [ 4]  183 		jmp	loop
+                            184 
+                            185 
+                            186 ;------------------------------------------------------------------------------
+                            187 ; cell evaluator functions
+                            188 ;------------------------------------------------------------------------------
+                            189 ; x coordinate in ,s (0-32)
+                            190 ; y coordinate in 1,s (0-23)
+                            191 ; sin table pointer in u
+                            192 ; return value in a
+                            193 ; do not rts, branch to setcell
+                            194 
+   019F A6 E4         [ 4]  195 GRADIENT:	lda	,s
+   01A1 AB 61         [ 5]  196 		adda	1,s
+   01A3 9B 85         [ 4]  197 		adda	*T
+   01A5 20 D8         [ 3]  198 		bra	setcell
+                            199 
+   01A7 A6 E4         [ 4]  200 MUNCHING:	lda	,s
+   01A9 4A            [ 2]  201 		deca
+   01AA A8 61         [ 5]  202 		eora	1,s
+   01AC 9B 85         [ 4]  203 		adda	*T
+   01AE 20 CF         [ 3]  204 		bra	setcell
+                            205 
+   01B0 A6 E4         [ 4]  206 WAVE:		lda	,s
+   01B2 9B 85         [ 4]  207 		adda	*T
+   01B4 CE 0C A4      [ 3]  208 		ldu	#SIN8
+   01B7 A6 C6         [ 5]  209 		lda	a,u
+   01B9 AB 61         [ 5]  210 		adda	1,s
+   01BB 90 85         [ 4]  211 		suba	*T
+   01BD A6 C6         [ 5]  212 		lda	a,u
+   01BF 20 BE         [ 3]  213 		bra	setcell
+                            214 
+   01C1 A6 E4         [ 4]  215 WAVE2:		lda	,s		;first component, sin(y)
+   01C3 9B 86         [ 4]  216 		adda	*T_3
+   01C5 A6 C6         [ 5]  217 		lda	a,u
+   01C7 9B 85         [ 4]  218 		adda	*T
+                            219 		;lsla
+   01C9 A6 C6         [ 5]  220 		lda	a,u
+   01CB 97 8C         [ 4]  221 		sta	*TEMP1
+                            222 
+   01CD A6 61         [ 5]  223 		lda	1,s
+   01CF 9B 85         [ 4]  224 		adda	*T
+   01D1 A6 C6         [ 5]  225 		lda	a,u
+   01D3 9B 86         [ 4]  226 		adda	*T_3
+                            227 		;lsla
+   01D5 A6 C6         [ 5]  228 		lda	a,u
+                            229 
+   01D7 9B 8C         [ 4]  230 		adda	*TEMP1
+   01D9 20 A4         [ 3]  231 		bra	setcell
+                            232 
+                            233 		
+                            234 
+                            235 
+                            236 ;------------------------------------------------------------------------------
+                            237 ; vertical blanking interrupt handler
+                            238 ;------------------------------------------------------------------------------
+   01DB B6 CC 01      [ 5]  239 VBLANK:		lda	VDP_REG		;read status, clear interrupt flag
+                            240 ; copy the grid into the name table
+   01DE CC 54 00      [ 3]  241 		ldd	#(VRAM|NAMETABLE)
+   01E1 F7 CC 01      [ 5]  242 		stb	VDP_REG
+   01E4 B7 CC 01      [ 5]  243 		sta	VDP_REG
+   01E7 DE 80         [ 5]  244 		ldu	*CURRENTGRID
+   01E9 8E CC 00      [ 3]  245 		ldx	#VDP_VRAM
+                            246 ; stack-blast the grid into VRAM (pulu d is faster than ldd ,u++)
+                            247 	.rept	16*24		;unroll that shit
+                            248 		pulu	d
+                            249 		sta	,x
+                            250 		stb	0,x		;extra cycle added so VDP doesn't miss
+                            251 	.endm
+   0AEC 3B            [15]  252 		rti		
+                            253 	
+                            254 
+                            255 ;------------------------------------------------------------------------------
+                            256 ; subroutines
+                            257 ;------------------------------------------------------------------------------
+                            258 
+                            259 
+                            260 ;------------------------------------------------------------------------------
+                            261 ; includes
+                            262 ;------------------------------------------------------------------------------
+                            263 
+                            264 	.include "../include/random.asm"
+                              1 ; vim:noet:sw=8:ts=8:ai:syn=as6809
+                              2 ; Matt Sarnoff (msarnoff.org/6809) - July 5, 2010
+                              3 ;
+                              4 ;************ Pseudorandom number generator ************
+                              5 ;Uses a 32-bit Galois linear feedback shift register.
+                              6 ;Not that great, but at least it doesn't require multiplication or division.
+                              7 
+                              8 
+   0AED CC 12 34      [ 3]    9 SETRANDOMSEED::	ldd	#0x1234
+   0AF0 FD 0B 6E      [ 6]   10 		std	RANDSEED
+   0AF3 CC 56 78      [ 3]   11 		ldd	#0x5678
+   0AF6 FD 0B 70      [ 6]   12 		std	RANDSEED+2
+   0AF9 39            [ 5]   13 		rts
+                             14 
+                             15 ;;; generate a pseudorandom bit
+                             16 ;;; arguments:	none
+                             17 ;;; returns:	bit in C flag
+                             18 ;;; destroys:	A,B
+   0AFA 74 0B 6E      [ 7]   19 RANDBIT::	lsr	RANDSEED	;shift right one bit
+   0AFD 76 0B 6F      [ 7]   20 		ror	RANDSEED+1
+   0B00 76 0B 70      [ 7]   21 		ror	RANDSEED+2
+   0B03 76 0B 71      [ 7]   22 		ror	RANDSEED+3
+   0B06 34 01         [ 6]   23 		pshs	cc		;save carry (output) bit
+   0B08 24 14         [ 3]   24 		bcc	randbitdone	;don't xor if lsb is 0
+   0B0A FC 0B 6E      [ 6]   25 		ldd	RANDSEED	;xor with 0xD0000001
+   0B0D 88 D0         [ 2]   26 		eora	#0xD0		;(x^32 + x^31 + x^29 + x + 1)
+   0B0F C8 00         [ 2]   27 		eorb	#0x00
+   0B11 FD 0B 6E      [ 6]   28 		std	RANDSEED
+   0B14 FC 0B 70      [ 6]   29 		ldd	RANDSEED+2
+   0B17 88 00         [ 2]   30 		eora	#0x00
+   0B19 C8 01         [ 2]   31 		eorb	#0x01
+   0B1B FD 0B 70      [ 6]   32 		std	RANDSEED+2
+   0B1E 35 81         [ 7]   33 randbitdone:	puls	pc,cc
+                             34 		
+                             35 ;;; generate a pseudorandom byte from 8 bits
+                             36 ;;; arguments:	none
+                             37 ;;; returns:	byte in B
+                             38 ;;; destroys:	A
+   0B20 32 7F         [ 5]   39 RANDBYTE::	leas	-1,s
+   0B22 8D D6         [ 7]   40 		bsr	RANDBIT
+   0B24 66 E4         [ 6]   41 		ror	,s
+   0B26 8D D2         [ 7]   42 		bsr	RANDBIT
+   0B28 66 E4         [ 6]   43 		ror	,s
+   0B2A 8D CE         [ 7]   44 		bsr	RANDBIT
+   0B2C 66 E4         [ 6]   45 		ror	,s
+   0B2E 8D CA         [ 7]   46 		bsr	RANDBIT
+   0B30 66 E4         [ 6]   47 		ror	,s
+   0B32 8D C6         [ 7]   48 		bsr	RANDBIT
+   0B34 66 E4         [ 6]   49 		ror	,s
+   0B36 8D C2         [ 7]   50 		bsr	RANDBIT
+   0B38 66 E4         [ 6]   51 		ror	,s
+   0B3A 8D BE         [ 7]   52 		bsr	RANDBIT
+   0B3C 66 E4         [ 6]   53 		ror	,s
+   0B3E 8D BA         [ 7]   54 		bsr	RANDBIT
+   0B40 66 E4         [ 6]   55 		ror	,s
+   0B42 35 84         [ 7]   56 		puls	b,pc
+                             57 
+                             58 ;;; generate a pseudorandom byte between 0 and A-1
+                             59 ;;; arguments:	maximum in A
+                             60 ;;; returns:	byte in B
+                             61 ;;; destroys:	A,B
+                             62 ;;;
+                             63 ;;; Calculates the number of bits required and generates numbers until one is
+                             64 ;;; found within the specified range.
+                             65 ;;; Does not require division, and thus does not suffer from modulo bias.
+   0B44 81 01         [ 2]   66 RANDBYTERANGE::	cmpa	#1		;input of 0 or 1 always returns 0
+   0B46 23 24         [ 3]   67 		bls	randzero
+   0B48 4A            [ 2]   68 		deca			;subtract 1
+   0B49 34 02         [ 6]   69 		pshs	a		;save range max
+                             70 ; find the number of random bits needed
+                             71 ; shift A left until a 1 is encountered
+   0B4B C6 09         [ 2]   72 		ldb	#9		;number of bits needed
+   0B4D 5A            [ 2]   73 1$:		decb
+   0B4E 48            [ 2]   74 		lsla
+   0B4F 24 FC         [ 3]   75 		bcc	1$
+   0B51 34 04         [ 6]   76 		pshs	b		;save number of bits
+                             77 ; generate random numbers until one within the range is found
+   0B53 32 7E         [ 5]   78 		leas	-2,s		;bytes for bit count and rand. number
+                             79 ;---- random byte loop begin
+   0B55 A6 62         [ 5]   80 genrandbyte:	lda	2,s
+   0B57 A7 61         [ 5]   81 		sta	1,s		;copy bit count
+   0B59 6F E4         [ 6]   82 		clr	,s		;clear random number accumulator
+                             83 ;------ random bit loop begin
+   0B5B 8D 9D         [ 7]   84 2$:		bsr	RANDBIT		;get a bit
+   0B5D 69 E4         [ 6]   85 		rol	,s		;shift it into accumulator
+   0B5F 6A 61         [ 7]   86 		dec	1,s		;decrement bit count
+   0B61 26 F8         [ 3]   87 		bne	2$		;get more if needed
+                             88 ;------ random bit loop end
+   0B63 E6 E4         [ 4]   89 		ldb	,s		;is the number in range?
+   0B65 E1 63         [ 5]   90 		cmpb	3,s
+   0B67 22 EC         [ 3]   91 		bhi	genrandbyte	;too high? try another
+                             92 ;---- random byte loop end
+   0B69 32 64         [ 5]   93 		leas	4,s		;clean up stack
+   0B6B 39            [ 5]   94 		rts			;return number in B
+   0B6C 5F            [ 2]   95 randzero:	clrb
+   0B6D 39            [ 5]   96 		rts
+                             97 
+                             98 
+   0B6E                      99 RANDSEED:	.rmb	4		;seed bytes (shift register)
+                            100 
+                     0000   101 	.if 0
+                            102 RANDTEST:	ldx	#testtable
+                            103 1$:		clr	,x+
+                            104 		cmpx	#testtable+512
+                            105 		bne	1$
+                            106 
+                            107 		ldy	#0x20
+                            108 2$:		tfr	y,d
+                            109 		jsr	OUTDECUW
+                            110 		jsr	OUTNL
+                            111 		pshs	y
+                            112 		ldu	#testtable
+                            113 		ldy	#0xffff
+                            114 3$:		jsr	RANDBYTE
+                            115 		clra
+                            116 		lslb			;multiply by 2 to get histogram offset
+                            117 		rola
+                            118 		ldx	d,u		;get histogram value
+                            119 		leax	1,x		;increment histogram value
+                            120 		stx	d,u		;store back in histogram
+                            121 		leay	-1,y		;decrement count
+                            122 		cmpy	#0
+                            123 		bne	3$
+                            124 		puls	y
+                            125 		leay	-1,y
+                            126 		cmpy	#0
+                            127 		bne	2$
+                            128 
+                            129 		ldx	#testtable
+                            130 		clrb
+                            131 		pshs	b
+                            132 4$:		ldb	,s
+                            133 		jsr	OUTDECUB
+                            134 		ldb	#',
+                            135 		jsr	[OUTCH]
+                            136 		ldd	,x++
+                            137 		jsr	OUTDECUW
+                            138 		jsr	OUTNL
+                            139 		inc	,s
+                            140 		cmpx	#testtable+512
+                            141 		bne	4$
+                            142 		leas	1,s
+                            143 		rts
+                            144 testtable:	.rmb	512
+                            145 	.endif
+                            265 	.include "../include/ym2149.asm"
+                              1 ; vim:noet:sw=8:ts=8:ai:syn=as6809
+                              2 ; Matt Sarnoff (msarnoff.org/6809) - November 5, 2010
+                              3 ;
+                              4 ;************ YM2149/AY-3-8910 Programmable Sound Generator ************
+                              5 ;
+                              6 ; Assuming a 2 MHz master clock:
+                              7 ;
+                              8 ; Tone generator frequency = 2000000 / (16 * T)
+                              9 ;   where T is the 12-bit value in 0x01-0x00, 0x03-0x02, or 0x05-0x04
+                             10 ;   min (T=4095):  30.525 Hz
+                             11 ;   max (T=1):     125000 Hz
+                             12 ; given F in Hz, T = 125000 / F
+                             13 ;
+                             14 ; Noise generator frequency = 2000000 / (16 * N)
+                             15 ;   where N is the 5-bit value in 0x06
+                             16 ;   min (N=31):    4032.3 Hz
+                             17 ;   max (N=1):     125000 Hz
+                             18 ;
+                             19 ; Envelope frequency = 2000000 / (256 * E)
+                             20 ;   where E is the 16-bit value in 0x0C-0x0B
+                             21 ;   min (E=65535): 0.1192 Hz
+                             22 ;   max (E=1):     7812.5 Hz
+                             23  
+                             24 ;;; silence the sound generator
+                             25 ;;; arguments:	none
+                             26 ;;; returns:	none
+                             27 ;;; destroys:	A,B
+   0B72 CC 07 3F      [ 3]   28 PSG_SILENCE::	ldd	#(PSG_CTRL<<8)|TONE_NONE|NOISE_NONE
+   0B75 FD CC 02      [ 6]   29 		std	PSG		;write address (in A) then data (in B)
+   0B78 39            [ 5]   30 		rts
+                             31 
+                             32 
+                             33 ;;; write to a PSG register
+                             34 ;;; arguments:	register address (0x00-0x0F) in A
+                             35 ;;;		data in B
+                             36 ;;; returns:	none
+                             37 ;;; destroys:	none
+   0B79 FD CC 02      [ 6]   38 PSG_WRITE::	std	PSG
+   0B7C 39            [ 5]   39 		rts
+                             40 
+                             41 
+                             42 ;;; read from a PSG register
+                             43 ;;; argments:	register address (0x00-0x0F) in A
+                             44 ;;; returns:	register value in A
+                             45 ;;; destroys:	none
+   0B7D B7 CC 02      [ 5]   46 PSG_READ::	sta	PSG
+   0B80 B6 CC 02      [ 5]   47 		lda	PSG
+   0B83 39            [ 5]   48 		rts
+                             49 
+                             50 
+                             51 ;;; write 2-byte value to registers 0x00-0x01 (tone generator A frequency)
+                             52 ;;; arguments:	value in D (big-endian)
+                             53 ;;; returns:	none
+                             54 ;;; destroys:	A,B
+   0B84 34 02         [ 6]   55 PSG_SET_AFREQ::	pshs	a
+   0B86 86 00         [ 2]   56 		lda	#PSG_A_FREQL	;address 0
+   0B88 FD CC 02      [ 6]   57 		std	PSG		;write address 0 followed by data LSB
+   0B8B 4C            [ 2]   58 		inca			;address 1
+   0B8C 35 04         [ 6]   59 		puls	b		;get data MSB
+   0B8E FD CC 02      [ 6]   60 		std	PSG		;write address 1 followed by data MSB
+   0B91 39            [ 5]   61 		rts
+                             62 
+                             63 
+                             64 ;;; write 2-byte value to registers 0x02-0x03 (tone generator B frequency)
+                             65 ;;; arguments:	value in D (big-endian)
+                             66 ;;; returns:	none
+                             67 ;;; destroys:	A,B
+   0B92 34 02         [ 6]   68 PSG_SET_BFREQ::	pshs	a
+   0B94 86 02         [ 2]   69 		lda	#PSG_B_FREQL
+   0B96 FD CC 02      [ 6]   70 		std	PSG
+   0B99 4C            [ 2]   71 		inca
+   0B9A 35 04         [ 6]   72 		puls	b
+   0B9C FD CC 02      [ 6]   73 		std	PSG
+   0B9F 39            [ 5]   74 		rts
+                             75 
+                             76 
+                             77 ;;; write 2-byte value to registers 0x04-0x05 (tone generator C frequency)
+                             78 ;;; arguments:	value in D (big-endian)
+                             79 ;;; returns:	none
+                             80 ;;; destroys:	A,B
+   0BA0 34 02         [ 6]   81 PSG_SET_CFREQ::	pshs	a
+   0BA2 86 04         [ 2]   82 		lda	#PSG_C_FREQL
+   0BA4 FD CC 02      [ 6]   83 		std	PSG
+   0BA7 4C            [ 2]   84 		inca
+   0BA8 35 04         [ 6]   85 		puls	b
+   0BAA FD CC 02      [ 6]   86 		std	PSG
+   0BAD 39            [ 5]   87 		rts
+                             88 
+                             89 
+                             90 ;;; write 2-byte value to registers 0x0B-0x0C (envelope frequency)
+                             91 ;;; arguments:	value in D (big-endian)
+                             92 ;;; returns:	none
+                             93 ;;; destroys	A,B
+   0BAE 34 02         [ 6]   94 PSG_SET_EFREQ::	pshs	a
+   0BB0 86 0B         [ 2]   95 		lda	#PSG_ENV_FREQL
+   0BB2 FD CC 02      [ 6]   96 		std	PSG
+   0BB5 4C            [ 2]   97 		inca
+   0BB6 35 04         [ 6]   98 		puls	b
+   0BB8 FD CC 02      [ 6]   99 		std	PSG
+   0BBB 39            [ 5]  100 		rts
+                            101 
+                            102 
+                            103 ;;; read 1-button Atari joysticks
+                            104 ;;; arguments:	none
+                            105 ;;; returns:	controller 1 button state in A
+                            106 ;;;		controller 2 button state in B
+                            107 ;;; destroys:	none
+                            108 ;;;
+                            109 ;;; A 1 bit indicates a pressed button.
+                            110 ;;; On return, flags reflect controller 1 state.
+   0BBC B6 CC 0E      [ 5]  111 READ_1BUTTON::	lda	CTLR_SET_SELECT	;make sure select line is high
+                            112 		
+   0BBF C6 0F         [ 2]  113 		ldb	#PSG_IO_B
+   0BC1 F7 CC 02      [ 5]  114 		stb	PSG_LATCH_ADDR
+   0BC4 F6 CC 02      [ 5]  115 		ldb	PSG_READ_ADDR
+   0BC7 53            [ 2]  116 		comb
+   0BC8 C4 1F         [ 2]  117 		andb	#0b00011111	;controller 2 state in B
+                            118 
+   0BCA 86 0E         [ 2]  119 		lda	#PSG_IO_A
+   0BCC B7 CC 02      [ 5]  120 		sta	PSG_LATCH_ADDR
+   0BCF B6 CC 02      [ 5]  121 		lda	PSG_READ_ADDR
+   0BD2 43            [ 2]  122 		coma
+   0BD3 84 1F         [ 2]  123 		anda	#0b00011111	;controller 1 state in A
+   0BD5 39            [ 5]  124 		rts
+                            125 
+                            126 
+                            127 ;;; read 3-button Sega gamepads
+                            128 ;;; arguments:	none
+                            129 ;;; returns:	controller 1 button state in A
+                            130 ;;;		controller 2 button state in B
+                            131 ;;; destroys:	none
+                            132 ;;;
+                            133 ;;; A 1 bit indicates a pressed button.
+                            134 ;;; Flags are not set on return.
+   0BD6 32 7E         [ 5]  135 READ_3BUTTON::	leas	-2,s		;2 bytes for controller states
+   0BD8 B6 CC 06      [ 5]  136 		lda	CTLR_CLR_SELECT	;read A and Start buttons
+   0BDB 86 0E         [ 2]  137 		lda	#PSG_IO_A	;read controller 1
+   0BDD B7 CC 02      [ 5]  138 		sta	PSG_LATCH_ADDR
+   0BE0 B6 CC 02      [ 5]  139 		lda	PSG_READ_ADDR
+   0BE3 43            [ 2]  140 		coma			;invert bits so 1 indicates press
+   0BE4 84 30         [ 2]  141 		anda	#0b00110000
+   0BE6 48            [ 2]  142 		lsla			;shift into bits 6 and 7
+   0BE7 48            [ 2]  143 		lsla
+   0BE8 A7 E4         [ 4]  144 		sta	,s
+   0BEA 86 0F         [ 2]  145 		lda	#PSG_IO_B	;read controller 2
+   0BEC B7 CC 02      [ 5]  146 		sta	PSG_LATCH_ADDR
+   0BEF B6 CC 02      [ 5]  147 		lda	PSG_READ_ADDR
+   0BF2 43            [ 2]  148 		coma
+   0BF3 84 30         [ 2]  149 		anda	#0b00110000
+   0BF5 48            [ 2]  150 		lsla
+   0BF6 48            [ 2]  151 		lsla
+   0BF7 A7 61         [ 5]  152 		sta	1,s
+                            153 
+   0BF9 B6 CC 0E      [ 5]  154 		lda	CTLR_SET_SELECT	;read up, down, left, right, B, C
+   0BFC 86 0E         [ 2]  155 		lda	#PSG_IO_A
+   0BFE B7 CC 02      [ 5]  156 		sta	PSG_LATCH_ADDR
+   0C01 B6 CC 02      [ 5]  157 		lda	PSG_READ_ADDR
+   0C04 43            [ 2]  158 		coma
+   0C05 84 3F         [ 2]  159 		anda	#0b00111111
+   0C07 AA E4         [ 4]  160 		ora	,s
+   0C09 A7 E4         [ 4]  161 		sta	,s
+   0C0B 86 0F         [ 2]  162 		lda	#PSG_IO_B
+   0C0D B7 CC 02      [ 5]  163 		sta	PSG_LATCH_ADDR
+   0C10 B6 CC 02      [ 5]  164 		lda	PSG_READ_ADDR
+   0C13 43            [ 2]  165 		coma
+   0C14 84 3F         [ 2]  166 		anda	#0b00111111
+   0C16 AA 61         [ 5]  167 		ora	1,s
+   0C18 A7 61         [ 5]  168 		sta	1,s
+   0C1A 35 86         [ 8]  169 		puls	a,b,pc		;return controller states in A and B
+                            170 
+                            266 
+                            267 
+                            268 ;------------------------------------------------------------------------------
+                            269 ; static data
+                            270 ;------------------------------------------------------------------------------
+                            271 
+                            272 ; VDP register values
+   0C1C 00                  273 vdp_regs:	.fcb	0x00	;Graphics I
+   0C1D 80                  274 		.fcb	0x80	;Graphics I, 16K, display off, no sprites
+   0C1E 05                  275 		.fcb	NAMETABLE/0x0400
+   0C1F 80                  276 		.fcb	COLORTABLE/0x0040
+   0C20 01                  277 		.fcb	PATTABLE/0x0800
+   0C21 20                  278 		.fcb	SPRATTABLE/0x0080
+   0C22 00                  279 		.fcb	SPRPATTABLE/0x0800
+   0C23 01                  280 		.fcb	0x01	;black background
+                            281 
+                            282 ; trig tables
+                            283 		.include "sin8.inc"
+   0C24 FF FC F9 F6 F3 F0     1 .fcb  -1,-4,-7,-10,-13,-16,-19,-22,-25,-28,-31
+        ED EA E7 E4 E1
+   0C2F DD DA D8 D5 D2 CF     2 .fcb  -35,-38,-40,-43,-46,-49,-52,-55,-58,-61
+        CC C9 C6 C3
+   0C39 C1 BE BB B9 B6 B4     3 .fcb  -63,-66,-69,-71,-74,-76,-79,-81,-84,-86
+        B1 AF AC AA
+   0C43 A8 A5 A3 A1 9F 9D     4 .fcb  -88,-91,-93,-95,-97,-99,-101,-103,-105
+        9B 99 97
+   0C4C 95 94 92 91 8F 8E     5 .fcb  -107,-108,-110,-111,-113,-114,-116,-117
+        8C 8B
+   0C54 8A 89 87 86 85 85     6 .fcb  -118,-119,-121,-122,-123,-123,-124,-125
+        84 83
+   0C5C 82 82 81 81 81 80     7 .fcb  -126,-126,-127,-127,-127,-128,-128,-128
+        80 80
+   0C64 80 80 80 80 81 81     8 .fcb  -128,-128,-128,-128,-127,-127,-127,-126
+        81 82
+   0C6C 82 83 84 85 85 86     9 .fcb  -126,-125,-124,-123,-123,-122,-121,-119
+        87 89
+   0C74 8A 8B 8C 8E 8F 91    10 .fcb  -118,-117,-116,-114,-113,-111,-110,-108
+        92 94
+   0C7C 95 97 99 9B 9D 9F    11 .fcb  -107,-105,-103,-101,-99,-97,-95,-93,-91
+        A1 A3 A5
+   0C85 A8 AA AC AF B1 B4    12 .fcb  -88,-86,-84,-81,-79,-76,-74,-71,-69,-66
+        B6 B9 BB BE
+   0C8F C1 C3 C6 C9 CC CF    13 .fcb  -63,-61,-58,-55,-52,-49,-46,-43,-40,-38
+        D2 D5 D8 DA
+   0C99 DD E1 E4 E7 EA ED    14 .fcb  -35,-31,-28,-25,-22,-19,-16,-13,-10,-7,-4
+        F0 F3 F6 F9 FC
+                             15 
+   0CA4                      16 SIN8:
+   0CA4 00 03 06 09 0C 0F    17 .fcb  0,3,6,9,12,15,18,21,24,27,30,34,37,39
+        12 15 18 1B 1E 22
+        25 27
+   0CB2 2A 2D 30 33 36 39    18 .fcb  42,45,48,51,54,57,60,62,65,68,70,73,75
+        3C 3E 41 44 46 49
+        4B
+   0CBF 4E 50 53 55 57 5A    19 .fcb  78,80,83,85,87,90,92,94,96,98,100,102
+        5C 5E 60 62 64 66
+   0CCB 68 6A 6B 6D 6E 70    20 .fcb  104,106,107,109,110,112,113,115,116,117
+        71 73 74 75
+   0CD5 76 78 79 7A 7A 7B    21 .fcb  118,120,121,122,122,123,124,125,125,126
+        7C 7D 7D 7E
+   0CDF 7E 7E 7F 7F 7F 7F    22 .fcb  126,126,127,127,127,127,127,127,127,126
+        7F 7F 7F 7E
+   0CE9 7E 7E 7D 7D 7C 7B    23 .fcb  126,126,125,125,124,123,122,122,121,120
+        7A 7A 79 78
+   0CF3 76 75 74 73 71 70    24 .fcb  118,117,116,115,113,112,110,109,107,106
+        6E 6D 6B 6A
+   0CFD 68 66 64 62 60 5E    25 .fcb  104,102,100,98,96,94,92,90,87,85,83,80
+        5C 5A 57 55 53 50
+   0D09 4E 4B 49 46 44 41    26 .fcb  78,75,73,70,68,65,62,60,57,54,51,48,45
+        3E 3C 39 36 33 30
+        2D
+   0D16 2A 27 25 22 1E 1B    27 .fcb  42,39,37,34,30,27,24,21,18,15,12,9,6,3
+        18 15 12 0F 0C 09
+        06 03
+                            284 ;COS8:		.include "cos8.inc"
+                            285 
+                            286 ; cell graphics
+                            287 CELLPATS:	.include "cells16.inc"
+                              1 ; char 0
+   0D24 00                    2 	.fcb	0b00000000
+   0D25 00                    3 	.fcb	0b00000000
+   0D26 00                    4 	.fcb	0b00000000
+   0D27 00                    5 	.fcb	0b00000000
+   0D28 00                    6 	.fcb	0b00000000
+   0D29 00                    7 	.fcb	0b00000000
+   0D2A 00                    8 	.fcb	0b00000000
+   0D2B 00                    9 	.fcb	0b00000000
+                             10 ; char 1
+   0D2C 00                   11 	.fcb	0b00000000
+   0D2D 00                   12 	.fcb	0b00000000
+   0D2E 00                   13 	.fcb	0b00000000
+   0D2F 00                   14 	.fcb	0b00000000
+   0D30 00                   15 	.fcb	0b00000000
+   0D31 10                   16 	.fcb	0b00010000
+   0D32 00                   17 	.fcb	0b00000000
+   0D33 00                   18 	.fcb	0b00000000
+                             19 ; char 2
+   0D34 00                   20 	.fcb	0b00000000
+   0D35 01                   21 	.fcb	0b00000001
+   0D36 90                   22 	.fcb	0b10010000
+   0D37 08                   23 	.fcb	0b00001000
+   0D38 02                   24 	.fcb	0b00000010
+   0D39 80                   25 	.fcb	0b10000000
+   0D3A 10                   26 	.fcb	0b00010000
+   0D3B 02                   27 	.fcb	0b00000010
+                             28 ; char 3
+   0D3C 00                   29 	.fcb	0b00000000
+   0D3D 2A                   30 	.fcb	0b00101010
+   0D3E 00                   31 	.fcb	0b00000000
+   0D3F 49                   32 	.fcb	0b01001001
+   0D40 10                   33 	.fcb	0b00010000
+   0D41 84                   34 	.fcb	0b10000100
+   0D42 20                   35 	.fcb	0b00100000
+   0D43 12                   36 	.fcb	0b00010010
+                             37 ; char 4
+   0D44 21                   38 	.fcb	0b00100001
+   0D45 94                   39 	.fcb	0b10010100
+   0D46 21                   40 	.fcb	0b00100001
+   0D47 14                   41 	.fcb	0b00010100
+   0D48 81                   42 	.fcb	0b10000001
+   0D49 A9                   43 	.fcb	0b10101001
+   0D4A 44                   44 	.fcb	0b01000100
+   0D4B 12                   45 	.fcb	0b00010010
+                             46 ; char 5
+   0D4C 24                   47 	.fcb	0b00100100
+   0D4D 92                   48 	.fcb	0b10010010
+   0D4E 25                   49 	.fcb	0b00100101
+   0D4F A8                   50 	.fcb	0b10101000
+   0D50 15                   51 	.fcb	0b00010101
+   0D51 42                   52 	.fcb	0b01000010
+   0D52 55                   53 	.fcb	0b01010101
+   0D53 48                   54 	.fcb	0b01001000
+                             55 ; char 6
+   0D54 AA                   56 	.fcb	0b10101010
+   0D55 49                   57 	.fcb	0b01001001
+   0D56 55                   58 	.fcb	0b01010101
+   0D57 49                   59 	.fcb	0b01001001
+   0D58 55                   60 	.fcb	0b01010101
+   0D59 55                   61 	.fcb	0b01010101
+   0D5A 24                   62 	.fcb	0b00100100
+   0D5B AA                   63 	.fcb	0b10101010
+                             64 ; char 7
+   0D5C AA                   65 	.fcb	0b10101010
+   0D5D 55                   66 	.fcb	0b01010101
+   0D5E 55                   67 	.fcb	0b01010101
+   0D5F 55                   68 	.fcb	0b01010101
+   0D60 55                   69 	.fcb	0b01010101
+   0D61 55                   70 	.fcb	0b01010101
+   0D62 AA                   71 	.fcb	0b10101010
+   0D63 AA                   72 	.fcb	0b10101010
+                             73 ; char 8
+   0D64 AA                   74 	.fcb	0b10101010
+   0D65 6D                   75 	.fcb	0b01101101
+   0D66 56                   76 	.fcb	0b01010110
+   0D67 55                   77 	.fcb	0b01010101
+   0D68 B5                   78 	.fcb	0b10110101
+   0D69 55                   79 	.fcb	0b01010101
+   0D6A B6                   80 	.fcb	0b10110110
+   0D6B AA                   81 	.fcb	0b10101010
+                             82 ; char 9
+   0D6C DB                   83 	.fcb	0b11011011
+   0D6D 6A                   84 	.fcb	0b01101010
+   0D6E BB                   85 	.fcb	0b10111011
+   0D6F AD                   86 	.fcb	0b10101101
+   0D70 6A                   87 	.fcb	0b01101010
+   0D71 AE                   88 	.fcb	0b10101110
+   0D72 F5                   89 	.fcb	0b11110101
+   0D73 56                   90 	.fcb	0b01010110
+                             91 ; char 10
+   0D74 BD                   92 	.fcb	0b10111101
+   0D75 D7                   93 	.fcb	0b11010111
+   0D76 7A                   94 	.fcb	0b01111010
+   0D77 AF                   95 	.fcb	0b10101111
+   0D78 EA                   96 	.fcb	0b11101010
+   0D79 BE                   97 	.fcb	0b10111110
+   0D7A D5                   98 	.fcb	0b11010101
+   0D7B DD                   99 	.fcb	0b11011101
+                            100 ; char 11
+   0D7C FF                  101 	.fcb	0b11111111
+   0D7D 55                  102 	.fcb	0b01010101
+   0D7E FF                  103 	.fcb	0b11111111
+   0D7F AA                  104 	.fcb	0b10101010
+   0D80 FF                  105 	.fcb	0b11111111
+   0D81 D5                  106 	.fcb	0b11010101
+   0D82 BF                  107 	.fcb	0b10111111
+   0D83 EB                  108 	.fcb	0b11101011
+                            109 ; char 12
+   0D84 FF                  110 	.fcb	0b11111111
+   0D85 6D                  111 	.fcb	0b01101101
+   0D86 FF                  112 	.fcb	0b11111111
+   0D87 DB                  113 	.fcb	0b11011011
+   0D88 BF                  114 	.fcb	0b10111111
+   0D89 ED                  115 	.fcb	0b11101101
+   0D8A 7F                  116 	.fcb	0b01111111
+   0D8B ED                  117 	.fcb	0b11101101
+                            118 ; char 13
+   0D8C FF                  119 	.fcb	0b11111111
+   0D8D FF                  120 	.fcb	0b11111111
+   0D8E 6F                  121 	.fcb	0b01101111
+   0D8F F6                  122 	.fcb	0b11110110
+   0D90 FF                  123 	.fcb	0b11111111
+   0D91 7F                  124 	.fcb	0b01111111
+   0D92 ED                  125 	.fcb	0b11101101
+   0D93 FF                  126 	.fcb	0b11111111
+                            127 ; char 14
+   0D94 FF                  128 	.fcb	0b11111111
+   0D95 FF                  129 	.fcb	0b11111111
+   0D96 FF                  130 	.fcb	0b11111111
+   0D97 FF                  131 	.fcb	0b11111111
+   0D98 EF                  132 	.fcb	0b11101111
+   0D99 FF                  133 	.fcb	0b11111111
+   0D9A FF                  134 	.fcb	0b11111111
+   0D9B FF                  135 	.fcb	0b11111111
+                            136 ; char 15
+   0D9C FF                  137 	.fcb	0b11111111
+   0D9D FF                  138 	.fcb	0b11111111
+   0D9E FF                  139 	.fcb	0b11111111
+   0D9F FF                  140 	.fcb	0b11111111
+   0DA0 FF                  141 	.fcb	0b11111111
+   0DA1 FF                  142 	.fcb	0b11111111
+   0DA2 FF                  143 	.fcb	0b11111111
+   0DA3 FF                  144 	.fcb	0b11111111
+                     0DA4   288 CELLPATS_END	.equ	.
+                            289 
+                            290 ; color order:
+                            291 ; medium red (0x8)
+                            292 ; light red (0x9)
+                            293 ; light yellow (0xB)
+                            294 ; light green (0x3)
+                            295 ; cyan (0x7)
+                            296 ; light blue (0x5)
+                            297 ; dark blue (0x4)
+                            298 ; magenta (0xD)
+   0DA4 98 98               299 COLORS:		.fcb	0x98,0x98
+   0DA6 B9 B9               300 		.fcb	0xB9,0xB9
+   0DA8 3B 3B               301 		.fcb	0x3B,0x3B
+   0DAA 73 73               302 		.fcb	0x73,0x73
+   0DAC 57 57               303 		.fcb	0x57,0x57
+   0DAE 45 45               304 		.fcb	0x45,0x45
+   0DB0 D4 D4               305 		.fcb	0xD4,0xD4
+   0DB2 8D 8D               306 		.fcb	0x8D,0x8D
+                            307 
+                            308 ;------------------------------------------------------------------------------
+                            309 ; data structures
+                            310 ;------------------------------------------------------------------------------
+                            311 
+                            312 ; two grid buffers
+   0DB4                     313 GRID1:		.rmb	GRID_SIZE
+   11F4                     314 GRID2:		.rmb	GRID_SIZE
+                            315 

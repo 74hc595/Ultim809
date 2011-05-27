@@ -1,0 +1,1027 @@
+                              1 ; vim:noet:sw=8:ts=8:ai:syn=as6809
+                              2 ; Matt Sarnoff (msarnoff.org/6809) - September 15, 2010
+                              3 ;
+                              4 ; Read the date from a DS1307 real-time clock and print it
+                              5 
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                              9 	.list
+                             10 
+                             11 	.area	_CODE(ABS)
+   0100                      12 	.org	USERPROG_ORG
+   0100 10 CE 80 00   [ 4]   13 		lds	#RAMEND+1	;set up stack pointer
+   0104 BD 01 1A      [ 8]   14 		jsr	I2C_INIT
+   0107 BD E8 53      [ 8]   15 		jsr	TEXT_CONSOLE
+                             16 
+   010A C6 11         [ 2]   17 		ldb	#0b00010001
+   010C BD 03 1B      [ 8]   18 		jsr	RTC_SET_CR
+                             19 
+   010F 8E 04 20      [ 3]   20 		ldx	#datebuf
+   0112 BD 02 68      [ 8]   21 		jsr	RTC_GET_TIME
+   0115 BD 03 40      [ 8]   22 		jsr	TIME_PRINT
+   0118 20 FE         [ 3]   23 		bra	.
+                             24 
+                             25 	.include "../include/i2c.asm"
+                              1 ; vim:noet:sw=8:ts=8:ai:syn=as6809
+                              2 ; Matt Sarnoff (msarnoff.org/6809) - September 15, 2010
+                              3 ;
+                              4 ;************ I2C bit-banging routines ************
+                              5 ;Uses the 6522 Versatile Interface Adapter in the following configuration:
+                              6 ;Port B pin 0: SDA
+                              7 ;Port B pin 1: SCL
+                              8 ;All other port B pins should be inputs or unused
+                              9 ;
+                             10 ;I2C is open-drain, so:
+                             11 ; - logic high is output by leaving the line pulled up to Vcc (DDR bit = 0)
+                             12 ; - logic low is output by pulling the line to ground (DDR bit = 1)
+                             13 ;
+                             14 ;Port B output register is always all zeros.
+                             15 
+                             16 
+                             17 ;************ Definitions ************
+                             18 
+                     0001    19 SDA		.equ	0b01
+                     0002    20 SCL		.equ	0b10
+                             21 
+                             22 ;;; initializes the I2C system
+                             23 ;;; arguments:	none
+                             24 ;;; returns:	none
+                             25 ;;; destroys:	A
+   011A 7F C0 02      [ 7]   26 I2C_INIT::	clr	VIA_DDRB	;all pins inputs
+   011D 7F C0 00      [ 7]   27 		clr	VIA_ORB		;all pins low when in output mode
+   0120 39            [ 5]   28 		rts
+                             29 
+                             30 
+                             31 ;;; send start condition (pull SDA low while SCL stays high)
+                             32 ;;; SCL and SDA must already be high
+                             33 ;;; arguments:	none
+                             34 ;;; returns:	none
+                             35 ;;; destroys:	A
+   0121 86 01         [ 2]   36 I2C_START::	lda	#SDA		;SDA becomes an output (pulled low)
+   0123 B7 C0 02      [ 5]   37 		sta	VIA_DDRB
+   0126 39            [ 5]   38 		rts			;now SCL is high and SDA is low
+                             39 
+                             40 
+                             41 ;;; send stop condition (pull SDA high while SCL stays high)
+                             42 ;;; SCL and SDA must be low
+                             43 ;;; arguments:	none
+                             44 ;;; returns:	none
+                             45 ;;; destroys:	A
+   0127 86 FD         [ 2]   46 I2C_STOP::	lda	#SDA|(~SCL)	;bring SCL high, leaving SDA low
+   0129 B7 C0 02      [ 5]   47 		sta	VIA_DDRB	;now SCL is high
+   012C 7F C0 02      [ 7]   48 		clr	VIA_DDRB	;now bring SDA high
+   012F 39            [ 5]   49 		rts
+                             50 
+                             51 
+                             52 ;;; send a byte
+                             53 ;;; SCL must be high, SDA must be low (start condition already sent)
+                             54 ;;; arguments:	byte in B
+                             55 ;;; returns:	none
+                             56 ;;; destroys:	A
+   0130 34 09         [ 7]   57 I2C_WRITE::	pshs	dp,cc
+   0132 1A 50         [ 3]   58 		orcc	#0b01010000	;disable interrupts
+   0134 86 C0         [ 2]   59 		lda	#VIA_PAGE	;so nothing messes up DP
+   0136 1F 8B         [ 6]   60 		tfr	a,dp
+   0138 53            [ 2]   61 		comb			;SDA output is inverted
+   0139 86 03         [ 2]   62 		lda	#SCL|SDA	;will set SCL low, keeping SDA low
+                             63 ; send bit 7
+   013B 58            [ 2]   64 		lslb			;get MSB out of A, into carry flag
+   013C 97 02         [ 4]   65 		sta	*VIA_DDRB_D	;set SCL and SDA low (C not affected)
+   013E 84 FE         [ 2]   66 		anda	#~SDA		;get data bit ready (C not affected)
+   0140 89 00         [ 2]   67 		adca	#0		;set data bit from carry flag
+   0142 97 02         [ 4]   68 		sta	*VIA_DDRB_D	;set data bit
+   0144 84 FD         [ 2]   69 		anda	#~SCL		;will bring SCL high
+   0146 97 02         [ 4]   70 		sta	*VIA_DDRB_D	;SCL rising edge (slave reads data bit)
+   0148 8A 02         [ 2]   71 		ora	#SCL		;will bring SCL low
+   014A 12            [ 2]   72 		nop			;wait a little for slave to read bit
+                             73 ; send bit 6
+   014B 58            [ 2]   74 		lslb
+   014C 97 02         [ 4]   75 		sta	*VIA_DDRB_D	;SCL falling edge
+   014E 84 FE         [ 2]   76 		anda	#~SDA
+   0150 89 00         [ 2]   77 		adca	#0
+   0152 97 02         [ 4]   78 		sta	*VIA_DDRB_D	;SDA set
+   0154 84 FD         [ 2]   79 		anda	#~SCL
+   0156 97 02         [ 4]   80 		sta	*VIA_DDRB_D	;SCL rising edge
+   0158 8A 02         [ 2]   81 		ora	#SCL
+   015A 12            [ 2]   82 		nop
+                             83 ; send bit 5
+   015B 58            [ 2]   84 		lslb
+   015C 97 02         [ 4]   85 		sta	*VIA_DDRB_D	;SCL falling edge
+   015E 84 FE         [ 2]   86 		anda	#~SDA
+   0160 89 00         [ 2]   87 		adca	#0
+   0162 97 02         [ 4]   88 		sta	*VIA_DDRB_D	;SDA set
+   0164 84 FD         [ 2]   89 		anda	#~SCL
+   0166 97 02         [ 4]   90 		sta	*VIA_DDRB_D	;SCL rising edge
+   0168 8A 02         [ 2]   91 		ora	#SCL
+   016A 12            [ 2]   92 		nop
+                             93 ; send bit 4
+   016B 58            [ 2]   94 		lslb
+   016C 97 02         [ 4]   95 		sta	*VIA_DDRB_D	;SCL falling edge
+   016E 84 FE         [ 2]   96 		anda	#~SDA
+   0170 89 00         [ 2]   97 		adca	#0
+   0172 97 02         [ 4]   98 		sta	*VIA_DDRB_D	;SDA set
+   0174 84 FD         [ 2]   99 		anda	#~SCL
+   0176 97 02         [ 4]  100 		sta	*VIA_DDRB_D	;SCL rising edge
+   0178 8A 02         [ 2]  101 		ora	#SCL
+   017A 12            [ 2]  102 		nop
+                            103 ; send bit 3
+   017B 58            [ 2]  104 		lslb
+   017C 97 02         [ 4]  105 		sta	*VIA_DDRB_D	;SCL falling edge
+   017E 84 FE         [ 2]  106 		anda	#~SDA
+   0180 89 00         [ 2]  107 		adca	#0
+   0182 97 02         [ 4]  108 		sta	*VIA_DDRB_D	;SDA set
+   0184 84 FD         [ 2]  109 		anda	#~SCL
+   0186 97 02         [ 4]  110 		sta	*VIA_DDRB_D	;SCL rising edge
+   0188 8A 02         [ 2]  111 		ora	#SCL
+   018A 12            [ 2]  112 		nop
+                            113 ; send bit 2
+   018B 58            [ 2]  114 		lslb
+   018C 97 02         [ 4]  115 		sta	*VIA_DDRB_D	;SCL falling edge
+   018E 84 FE         [ 2]  116 		anda	#~SDA
+   0190 89 00         [ 2]  117 		adca	#0
+   0192 97 02         [ 4]  118 		sta	*VIA_DDRB_D	;SDA set
+   0194 84 FD         [ 2]  119 		anda	#~SCL
+   0196 97 02         [ 4]  120 		sta	*VIA_DDRB_D	;SCL rising edge
+   0198 8A 02         [ 2]  121 		ora	#SCL
+   019A 12            [ 2]  122 		nop
+                            123 ; send bit 1
+   019B 58            [ 2]  124 		lslb
+   019C 97 02         [ 4]  125 		sta	*VIA_DDRB_D	;SCL falling edge
+   019E 84 FE         [ 2]  126 		anda	#~SDA
+   01A0 89 00         [ 2]  127 		adca	#0
+   01A2 97 02         [ 4]  128 		sta	*VIA_DDRB_D	;SDA set
+   01A4 84 FD         [ 2]  129 		anda	#~SCL
+   01A6 97 02         [ 4]  130 		sta	*VIA_DDRB_D	;SCL rising edge
+   01A8 8A 02         [ 2]  131 		ora	#SCL
+   01AA 12            [ 2]  132 		nop
+                            133 ; send bit 0
+   01AB 58            [ 2]  134 		lslb
+   01AC 97 02         [ 4]  135 		sta	*VIA_DDRB_D	;SCL falling edge
+   01AE 84 FE         [ 2]  136 		anda	#~SDA
+   01B0 89 00         [ 2]  137 		adca	#0
+   01B2 97 02         [ 4]  138 		sta	*VIA_DDRB_D	;SDA set
+   01B4 84 FD         [ 2]  139 		anda	#~SCL
+   01B6 97 02         [ 4]  140 		sta	*VIA_DDRB_D	;SCL rising edge
+   01B8 8A 02         [ 2]  141 		ora	#SCL
+   01BA 12            [ 2]  142 		nop
+   01BB 12            [ 2]  143 		nop
+   01BC 97 02         [ 4]  144 		sta	*VIA_DDRB_D	;SCL falling edge
+                            145 ; release SDA so slave can send ACK bit
+   01BE 84 FE         [ 2]  146 		anda	#~SDA		;bring SDA high
+   01C0 97 02         [ 4]  147 		sta	*VIA_DDRB_D
+   01C2 84 FD         [ 2]  148 		anda	#~SCL
+   01C4 97 02         [ 4]  149 		sta	*VIA_DDRB_D	;SCL rising edge
+   01C6 12            [ 2]  150 		nop
+   01C7 12            [ 2]  151 		nop
+   01C8 8A 02         [ 2]  152 		ora	#SCL
+   01CA 97 02         [ 4]  153 		sta	*VIA_DDRB_D	;SCL falling edge
+                            154 ; bring SDA low
+   01CC 8A 01         [ 2]  155 		ora	#SDA
+   01CE 97 02         [ 4]  156 		sta	*VIA_DDRB_D
+                            157 ; SCL and SDA are now both low, stop condition may be sent
+   01D0 35 89         [ 8]  158 		puls	dp,cc,pc
+                            159 
+                            160 
+                            161 ;;; receive a byte, send ACK to the slave
+                            162 ;;; arguments:	none
+                            163 ;;; returns:	byte in B
+                            164 ;;; destroys:	A
+   01D2 34 09         [ 7]  165 I2C_READ_ACK::	pshs	dp,cc
+   01D4 1A 50         [ 3]  166 		orcc	#0b01010000	;disable interrupts
+   01D6 86 C0         [ 2]  167 		lda	#VIA_PAGE	;so nothing messes up DP
+   01D8 1F 8B         [ 6]  168 		tfr	a,dp
+   01DA 8D 29         [ 7]  169 		bsr	I2C_READ	;read byte
+                            170 ; SCL is low and SDA is high, pull SDA low to send ACK
+   01DC 86 03         [ 2]  171 		lda	#SCL|SDA
+   01DE 97 02         [ 4]  172 		sta	*VIA_DDRB_D	;pull SDA low
+   01E0 84 FD         [ 2]  173 		anda	#~SCL
+   01E2 97 02         [ 4]  174 		sta	*VIA_DDRB_D	;SCL rising edge
+   01E4 12            [ 2]  175 		nop
+   01E5 12            [ 2]  176 		nop
+   01E6 8A 02         [ 2]  177 		ora	#SCL
+   01E8 97 02         [ 4]  178 		sta	*VIA_DDRB_D	;SCL falling edge
+                            179 ; SCL and SDA are now low
+   01EA 35 89         [ 8]  180 		puls	dp,cc,pc
+                            181 
+                            182 
+                            183 ;;; receive a byte, send NACK to the slave
+                            184 ;;; arguments:	none
+                            185 ;;; returns:	byte in B
+                            186 ;;; destroys:	A
+   01EC 34 09         [ 7]  187 I2C_READ_NACK::	pshs	dp,cc
+   01EE 1A 50         [ 3]  188 		orcc	#0b01010000	;disable interrupts
+   01F0 86 C0         [ 2]  189 		lda	#VIA_PAGE	;so nothing messes up DP
+   01F2 1F 8B         [ 6]  190 		tfr	a,dp
+   01F4 8D 0F         [ 7]  191 		bsr	I2C_READ	;read byte
+                            192 
+                            193 ; SCL is low, leave SDA high to send NACK
+   01F6 4F            [ 2]  194 		clra
+   01F7 97 02         [ 4]  195 		sta	*VIA_DDRB_D	;SCL rising edge
+   01F9 12            [ 2]  196 		nop
+   01FA 12            [ 2]  197 		nop
+   01FB 8A 02         [ 2]  198 		ora	#SCL
+   01FD 97 02         [ 4]  199 		sta	*VIA_DDRB_D	;SCL falling edge
+   01FF 8A 01         [ 2]  200 		ora	#SDA
+   0201 97 02         [ 4]  201 		sta	*VIA_DDRB_D	;pull SDA low, to prepare for stop
+                            202 ; SCL and SDA are now low
+   0203 35 89         [ 8]  203 		puls	dp,cc,pc
+                            204 
+                            205 
+                            206 ;;; receive a byte, without sending ACK or NACK
+                            207 ;;; direct page register must be properly set to VIA_PAGE
+                            208 ;;; arguments:	none
+                            209 ;;; returns:	byte in B
+                            210 ;;; destroys:	A
+   0205 5F            [ 2]  211 I2C_READ:	clrb
+                            212 ; pull SCL low (prepare for first clock)
+   0206 96 02         [ 4]  213 		lda	*VIA_DDRB_D
+   0208 8A 02         [ 2]  214 		ora	#SCL
+   020A 97 02         [ 4]  215 		sta	*VIA_DDRB_D	;SCL falling edge
+                            216 ; SDA is still an input, but SCL is now an output
+                            217 ; release SDA so slave can set data bit
+   020C 84 FE         [ 2]  218 		anda	#~SDA
+   020E 97 02         [ 4]  219 		sta	*VIA_DDRB_D	;SDA released
+                            220 
+                            221 ; clock in bit 7
+   0210 0F 02         [ 6]  222 		clr	*VIA_DDRB_D	;SCL rising edge
+   0212 96 00         [ 4]  223 		lda	*VIA_IRB_D	;read data line
+   0214 44            [ 2]  224 		lsra			;shift data into carry bit
+   0215 86 02         [ 2]  225 		lda	#SCL
+   0217 97 02         [ 4]  226 		sta	*VIA_DDRB_D	;SCL falling edge
+   0219 59            [ 2]  227 		rolb			;shift carry bit into result
+   021A 12            [ 2]  228 		nop
+                            229 ; clock in bit 6
+   021B 0F 02         [ 6]  230 		clr	*VIA_DDRB_D	;SCL rising edge
+   021D 96 00         [ 4]  231 		lda	*VIA_IRB_D
+   021F 44            [ 2]  232 		lsra
+   0220 86 02         [ 2]  233 		lda	#SCL
+   0222 97 02         [ 4]  234 		sta	*VIA_DDRB_D	;SCL falling edge
+   0224 59            [ 2]  235 		rolb
+   0225 12            [ 2]  236 		nop
+                            237 ; clock in bit 5
+   0226 0F 02         [ 6]  238 		clr	*VIA_DDRB_D	;SCL rising edge
+   0228 96 00         [ 4]  239 		lda	*VIA_IRB_D
+   022A 44            [ 2]  240 		lsra
+   022B 86 02         [ 2]  241 		lda	#SCL
+   022D 97 02         [ 4]  242 		sta	*VIA_DDRB_D	;SCL falling edge
+   022F 59            [ 2]  243 		rolb
+   0230 12            [ 2]  244 		nop
+                            245 ; clock in bit 4
+   0231 0F 02         [ 6]  246 		clr	*VIA_DDRB_D	;SCL rising edge
+   0233 96 00         [ 4]  247 		lda	*VIA_IRB_D
+   0235 44            [ 2]  248 		lsra
+   0236 86 02         [ 2]  249 		lda	#SCL
+   0238 97 02         [ 4]  250 		sta	*VIA_DDRB_D	;SCL falling edge
+   023A 59            [ 2]  251 		rolb
+   023B 12            [ 2]  252 		nop
+                            253 ; clock in bit 3
+   023C 0F 02         [ 6]  254 		clr	*VIA_DDRB_D	;SCL rising edge
+   023E 96 00         [ 4]  255 		lda	*VIA_IRB_D
+   0240 44            [ 2]  256 		lsra
+   0241 86 02         [ 2]  257 		lda	#SCL
+   0243 97 02         [ 4]  258 		sta	*VIA_DDRB_D	;SCL falling edge
+   0245 59            [ 2]  259 		rolb
+   0246 12            [ 2]  260 		nop
+                            261 ; clock in bit 2
+   0247 0F 02         [ 6]  262 		clr	*VIA_DDRB_D	;SCL rising edge
+   0249 96 00         [ 4]  263 		lda	*VIA_IRB_D
+   024B 44            [ 2]  264 		lsra
+   024C 86 02         [ 2]  265 		lda	#SCL
+   024E 97 02         [ 4]  266 		sta	*VIA_DDRB_D	;SCL falling edge
+   0250 59            [ 2]  267 		rolb
+   0251 12            [ 2]  268 		nop
+                            269 ; clock in bit 1
+   0252 0F 02         [ 6]  270 		clr	*VIA_DDRB_D	;SCL rising edge
+   0254 96 00         [ 4]  271 		lda	*VIA_IRB_D
+   0256 44            [ 2]  272 		lsra
+   0257 86 02         [ 2]  273 		lda	#SCL
+   0259 97 02         [ 4]  274 		sta	*VIA_DDRB_D	;SCL falling edge
+   025B 59            [ 2]  275 		rolb
+   025C 12            [ 2]  276 		nop
+                            277 ; clock in bit 0
+   025D 0F 02         [ 6]  278 		clr	*VIA_DDRB_D	;SCL rising edge
+   025F 96 00         [ 4]  279 		lda	*VIA_IRB_D
+   0261 44            [ 2]  280 		lsra
+   0262 86 02         [ 2]  281 		lda	#SCL
+   0264 97 02         [ 4]  282 		sta	*VIA_DDRB_D	;SCL falling edge
+   0266 59            [ 2]  283 		rolb
+   0267 39            [ 5]  284 		rts
+                            285 
+                             26 	.include "../include/ds1307.asm"
+                              1 ; vim:noet:sw=8:ts=8:ai:syn=as6809
+                              2 ; Matt Sarnoff (msarnoff.org/6809) - September 16, 2010
+                              3 ;
+                              4 ;************ DS1307 real-time clock routines ************
+                              5 
+                     00D0     6 RTC_ID_WRITE	.equ	0xD0
+                     00D1     7 RTC_ID_READ	.equ	0xD1
+                              8 
+                              9 ; time/date field offsets
+                     0000    10 RTC_SEC		.equ	0	;00-59
+                     0001    11 RTC_MIN		.equ	1	;00-59
+                     0002    12 RTC_HOUR	.equ	2	;01-12 or 00-23
+                     0003    13 RTC_WEEKDAY	.equ	3	;1-7
+                     0004    14 RTC_DATE	.equ	4	;01-31
+                     0005    15 RTC_MONTH	.equ	5	;01-12
+                     0006    16 RTC_YEAR	.equ	6	;00-99
+                     0007    17 RTC_CONTROL	.equ	7
+                     0008    18 RTC_NVRAM	.equ	8
+                     0040    19 RTC_12HR_BIT	.equ	0b01000000
+                             20 
+                             21 ;;; read time into buffer pointed to by X
+                             22 ;;; arguments:	pointer to buffer in X (7 bytes)
+                             23 ;;; returns:	time written to buffer
+                             24 ;;; destroys:	A,B
+   0268 34 10         [ 6]   25 RTC_GET_TIME::	pshs	x
+                             26 ; send start condition
+   026A BD 01 21      [ 8]   27 		jsr	I2C_START
+                             28 ; send start address
+   026D C6 D0         [ 2]   29 		ldb	#RTC_ID_WRITE
+   026F BD 01 30      [ 8]   30 		jsr	I2C_WRITE
+   0272 C6 00         [ 2]   31 		ldb	#RTC_SEC
+   0274 BD 01 30      [ 8]   32 		jsr	I2C_WRITE
+   0277 BD 01 27      [ 8]   33 		jsr	I2C_STOP
+                             34 ; read bytes
+   027A BD 01 21      [ 8]   35 		jsr	I2C_START
+   027D C6 D1         [ 2]   36 		ldb	#RTC_ID_READ
+   027F BD 01 30      [ 8]   37 		jsr	I2C_WRITE
+                             38 ; get seconds
+   0282 BD 01 D2      [ 8]   39 		jsr	I2C_READ_ACK
+   0285 E7 80         [ 6]   40 		stb	,x+
+                             41 ; get minutes
+   0287 BD 01 D2      [ 8]   42 		jsr	I2C_READ_ACK
+   028A E7 80         [ 6]   43 		stb	,x+
+                             44 ; get hours
+   028C BD 01 D2      [ 8]   45 		jsr	I2C_READ_ACK
+   028F E7 80         [ 6]   46 		stb	,x+
+                             47 ; get day of week
+   0291 BD 01 D2      [ 8]   48 		jsr	I2C_READ_ACK
+   0294 E7 80         [ 6]   49 		stb	,x+
+                             50 ; get date
+   0296 BD 01 D2      [ 8]   51 		jsr	I2C_READ_ACK
+   0299 E7 80         [ 6]   52 		stb	,x+
+                             53 ; get month
+   029B BD 01 D2      [ 8]   54 		jsr	I2C_READ_ACK
+   029E E7 80         [ 6]   55 		stb	,x+
+                             56 ; get year
+   02A0 BD 01 EC      [ 8]   57 		jsr	I2C_READ_NACK
+   02A3 E7 84         [ 4]   58 		stb	,x
+   02A5 BD 01 27      [ 8]   59 		jsr	I2C_STOP
+   02A8 35 90         [ 7]   60 		puls	x,pc
+                             61 
+                             62 
+                             63 ;;; store time from buffer pointed to by X
+                             64 ;;; arguments:	pointer to buffer in X (7 bytes)
+                             65 ;;; returns:	none
+                             66 ;;; destroys:	A,B,X
+   02AA                      67 RTC_SET_TIME::	
+                             68 ; send start condition
+   02AA BD 01 21      [ 8]   69 		jsr	I2C_START
+                             70 ; send start address
+   02AD C6 D0         [ 2]   71 		ldb	#RTC_ID_WRITE
+   02AF BD 01 30      [ 8]   72 		jsr	I2C_WRITE
+   02B2 C6 00         [ 2]   73 		ldb	#RTC_SEC
+   02B4 BD 01 30      [ 8]   74 		jsr	I2C_WRITE
+                             75 ; send seconds
+   02B7 E6 80         [ 6]   76 		ldb	,x+
+   02B9 BD 01 30      [ 8]   77 		jsr	I2C_WRITE
+                             78 ; send minutes
+   02BC E6 80         [ 6]   79 		ldb	,x+
+   02BE BD 01 30      [ 8]   80 		jsr	I2C_WRITE
+                             81 ; send hours
+   02C1 E6 80         [ 6]   82 		ldb	,x+
+   02C3 BD 01 30      [ 8]   83 		jsr	I2C_WRITE
+                             84 ; send weekday
+   02C6 E6 80         [ 6]   85 		ldb	,x+
+   02C8 BD 01 30      [ 8]   86 		jsr	I2C_WRITE
+                             87 ; send date
+   02CB E6 80         [ 6]   88 		ldb	,x+
+   02CD BD 01 30      [ 8]   89 		jsr	I2C_WRITE
+                             90 ; send month
+   02D0 E6 80         [ 6]   91 		ldb	,x+
+   02D2 BD 01 30      [ 8]   92 		jsr	I2C_WRITE
+                             93 ; send year
+   02D5 E6 80         [ 6]   94 		ldb	,x+
+   02D7 BD 01 30      [ 8]   95 		jsr	I2C_WRITE
+                             96 ; send stop condition
+   02DA BD 01 27      [ 8]   97 		jsr	I2C_STOP
+   02DD 39            [ 5]   98 		rts
+                             99 
+                            100 
+                            101 ;;; read a byte from the DS1307
+                            102 ;;; arguments:	address in A
+                            103 ;;; returns:	byte value in B
+   02DE 34 02         [ 6]  104 RTC_GET_BYTE::	pshs	a
+                            105 ; send start condition
+   02E0 BD 01 21      [ 8]  106 		jsr	I2C_START
+                            107 ; send address
+   02E3 C6 D0         [ 2]  108 		ldb	#RTC_ID_WRITE
+   02E5 BD 01 30      [ 8]  109 		jsr	I2C_WRITE
+   02E8 35 04         [ 6]  110 		puls	b		;pull address argument from stack
+   02EA BD 01 30      [ 8]  111 		jsr	I2C_WRITE
+   02ED BD 01 27      [ 8]  112 		jsr	I2C_STOP
+                            113 ; read byte
+   02F0 BD 01 21      [ 8]  114 		jsr	I2C_START
+   02F3 C6 D1         [ 2]  115 		ldb	#RTC_ID_READ
+   02F5 BD 01 30      [ 8]  116 		jsr	I2C_WRITE
+                            117 ; get byte
+   02F8 BD 01 EC      [ 8]  118 		jsr	I2C_READ_NACK	;byte is now in B
+                            119 ; send stop condition
+   02FB BD 01 27      [ 8]  120 		jsr	I2C_STOP
+   02FE 39            [ 5]  121 		rts
+                            122 
+                            123 
+                            124 ;;; set a byte in the DS1307
+                            125 ;;; arguments:	address in A, new value in B
+                            126 ;;; returns:	none
+                            127 ;;; destroys:	A,B
+   02FF 34 06         [ 7]  128 RTC_SET_BYTE::	pshs	a,b
+                            129 ; send start condition
+   0301 BD 01 21      [ 8]  130 		jsr	I2C_START
+                            131 ; send address
+   0304 C6 D0         [ 2]  132 		ldb	#RTC_ID_WRITE
+   0306 BD 01 30      [ 8]  133 		jsr	I2C_WRITE
+   0309 35 04         [ 6]  134 		puls	b		;pull address argument from stack
+   030B BD 01 30      [ 8]  135 		jsr	I2C_WRITE
+                            136 ; send byte
+   030E 35 04         [ 6]  137 		puls	b		;pull value argument from stack
+   0310 BD 01 30      [ 8]  138 		jsr	I2C_WRITE
+                            139 ; send stop condition
+   0313 BD 01 27      [ 8]  140 		jsr	I2C_STOP
+   0316 39            [ 5]  141 		rts
+                            142 
+                            143 
+                            144 ;;; read the DS1307 control register
+                            145 ;;; arguments:	none
+                            146 ;;; returns:	register value in B
+                            147 ;;; destroys:	A
+   0317 86 07         [ 2]  148 RTC_GET_CR::	lda	#RTC_CONTROL
+   0319 20 C3         [ 3]  149 		bra	RTC_GET_BYTE
+                            150 
+                            151 
+                            152 ;;; set DS1307 control register
+                            153 ;;; arguments:	new control register value in B
+                            154 ;;; returns:	none
+                            155 ;;; destroys:	A,B
+   031B 86 07         [ 2]  156 RTC_SET_CR::	lda	#RTC_CONTROL
+   031D 20 E0         [ 3]  157 		bra	RTC_SET_BYTE
+                            158 
+                            159 
+                            160 ;;; start running the oscillator
+                            161 ;;; arguments:	none
+                            162 ;;; returns:	none
+                            163 ;;; destroys:	A,B
+   031F 86 00         [ 2]  164 RTC_RUN::	lda	#RTC_SEC		;get seconds byte
+   0321 8D BB         [ 7]  165 		bsr	RTC_GET_BYTE
+   0323 C4 7F         [ 2]  166 		andb	#0b01111111		;clear clock halt bit
+   0325 86 00         [ 2]  167 		lda	#RTC_SEC
+   0327 20 D6         [ 3]  168 		bra	RTC_SET_BYTE		;set new byte value
+                            169 
+                            170 
+                            171 ;;; stop the oscillator
+                            172 ;;; arguments:	none
+                            173 ;;; returns:	none
+                            174 ;;; destroys:	A,B
+   0329 86 00         [ 2]  175 RTC_HALT::	lda	#RTC_SEC		;get seconds byte
+   032B 8D B1         [ 7]  176 		bsr	RTC_GET_BYTE
+   032D CA 80         [ 2]  177 		orb	#0b10000000		;set clock halt bit
+   032F 86 00         [ 2]  178 		lda	#RTC_SEC
+   0331 20 CC         [ 3]  179 		bra	RTC_SET_BYTE
+                            180 
+                            181 
+                            182 ;;; check if the RTC's oscillator is running
+                            183 ;;; arguments:	none
+                            184 ;;; returns:	Z flag set if oscillator running
+   0333 86 00         [ 2]  185 RTC_RUNNING::	lda	#RTC_SEC		;get seconds byte
+   0335 8D A7         [ 7]  186 		bsr	RTC_GET_BYTE
+   0337 5D            [ 2]  187 		tstb				;check if bit 7 is set
+   0338 26 03         [ 3]  188 		bne	ch_set
+   033A 1C FB         [ 3]  189 		andcc	#0b11111011		;clear Z flag
+   033C 39            [ 5]  190 		rts
+   033D 1A 04         [ 3]  191 ch_set:		orcc	#0b00000100		;set Z flag
+   033F 39            [ 5]  192 		rts
+                            193 
+                            194 
+                            195 ;;; print time in 7-byte buffer pointed to by X
+                            196 ;;; arguments:	pointer to time buffer in X
+                            197 ;;; returns:	none
+                            198 ;;; destroys:	A,B
+   0340 1F 12         [ 6]  199 TIME_PRINT::	tfr	x,y
+                            200 ; print weekday
+   0342 E6 23         [ 5]  201 		ldb	RTC_WEEKDAY,y
+   0344 58            [ 2]  202 		lslb
+   0345 58            [ 2]  203 		lslb
+   0346 8E 04 00      [ 3]  204 		ldx	#daystrs
+   0349 3A            [ 3]  205 		abx
+   034A 86 04         [ 2]  206 		lda	#4
+   034C BD E0 DF      [ 8]  207 		jsr	OUTSTRN
+                            208 ; print month
+   034F E6 25         [ 5]  209 		ldb	RTC_MONTH,y
+   0351 C5 10         [ 2]  210 		bitb	#0b00010000	;check for month >= 10
+   0353 27 04         [ 3]  211 		beq	monthmul4
+   0355 C4 0F         [ 2]  212 		andb	#0b00001111	;mask off 10 bit
+   0357 CB 0A         [ 2]  213 		addb	#10		;add 10
+   0359 58            [ 2]  214 monthmul4:	lslb			;multiply by 4 to get string offset
+   035A 58            [ 2]  215 		lslb
+   035B 8E 03 CC      [ 3]  216 		ldx	#monthstrs
+   035E 3A            [ 3]  217 		abx
+   035F 86 04         [ 2]  218 		lda	#4
+   0361 BD E0 DF      [ 8]  219 		jsr	OUTSTRN
+                            220 ; print date
+   0364 E6 24         [ 5]  221 		ldb	RTC_DATE,y
+   0366 BD E0 F3      [ 8]  222 		jsr	OUTHEXB
+   0369 BD E0 BE      [ 8]  223 		jsr	OUTSP
+                            224 ; print year
+   036C C6 32         [ 2]  225 		ldb	#'2
+   036E AD 9F 00 0E   [12]  226 		jsr	[OUTCH]
+   0372 C6 30         [ 2]  227 		ldb	#'0
+   0374 AD 9F 00 0E   [12]  228 		jsr	[OUTCH]
+   0378 E6 26         [ 5]  229 		ldb	RTC_YEAR,y
+   037A BD E0 F3      [ 8]  230 		jsr	OUTHEXB
+   037D BD E0 BE      [ 8]  231 		jsr	OUTSP
+                            232 ; print 12 or 24 hour time
+   0380 E6 22         [ 5]  233 		ldb	RTC_HOUR,y
+   0382 C5 40         [ 2]  234 		bitb	#RTC_12HR_BIT
+   0384 26 27         [ 3]  235 		bne	print12hr
+   0386 C4 3F         [ 2]  236 print24hr:	andb	#0b00111111
+   0388 BD E0 F3      [ 8]  237 printhr:	jsr	OUTHEXB
+   038B C6 3A         [ 2]  238 		ldb	#':
+   038D AD 9F 00 0E   [12]  239 		jsr	[OUTCH]
+                            240 ; print minutes
+   0391 E6 21         [ 5]  241 		ldb	RTC_MIN,y
+   0393 BD E0 F3      [ 8]  242 		jsr	OUTHEXB
+   0396 C6 3A         [ 2]  243 		ldb	#':
+   0398 AD 9F 00 0E   [12]  244 		jsr	[OUTCH]
+                            245 ; print seconds
+   039C E6 20         [ 5]  246 		ldb	RTC_SEC,y
+   039E C4 7F         [ 2]  247 		andb	#0b01111111
+   03A0 BD E0 F3      [ 8]  248 		jsr	OUTHEXB
+                            249 ; print AM/PM if necessary
+   03A3 E6 22         [ 5]  250 		ldb	RTC_HOUR,y
+   03A5 C5 40         [ 2]  251 		bitb	#RTC_12HR_BIT
+   03A7 26 08         [ 3]  252 		bne	printampm
+   03A9 BD E0 B2      [ 8]  253 		jsr	OUTNL
+   03AC 39            [ 5]  254 		rts
+                            255 
+   03AD C4 1F         [ 2]  256 print12hr:	andb	#0b00011111
+   03AF 20 D7         [ 3]  257 		bra	printhr
+                            258 
+   03B1 1F 98         [ 6]  259 printampm:	tfr	b,a
+   03B3 BD E0 BE      [ 8]  260 		jsr	OUTSP
+   03B6 C6 41         [ 2]  261 		ldb	#'A
+   03B8 85 20         [ 2]  262 		bita	#0b00100000
+   03BA 27 02         [ 3]  263 		beq	doprintampm
+   03BC C6 50         [ 2]  264 		ldb	#'P
+   03BE AD 9F 00 0E   [12]  265 doprintampm:	jsr	[OUTCH]
+   03C2 C6 4D         [ 2]  266 		ldb	#'M
+   03C4 AD 9F 00 0E   [12]  267 		jsr	[OUTCH]
+   03C8 BD E0 B2      [ 8]  268 		jsr	OUTNL
+   03CB 39            [ 5]  269 		rts
+                            270 
+   03CC 3F 3F 3F 20         271 monthstrs:	.ascii	"??? "
+   03D0 4A 61 6E 20         272 		.ascii	"Jan "
+   03D4 46 65 62 20         273 		.ascii	"Feb "
+   03D8 4D 61 72 20         274 		.ascii	"Mar "
+   03DC 41 70 72 20         275 		.ascii	"Apr "
+   03E0 4D 61 79 20         276 		.ascii	"May "
+   03E4 4A 75 6E 20         277 		.ascii	"Jun "
+   03E8 4A 75 6C 20         278 		.ascii	"Jul "
+   03EC 41 75 67 20         279 		.ascii	"Aug "
+   03F0 53 65 70 20         280 		.ascii	"Sep "
+   03F4 4F 63 74 20         281 		.ascii	"Oct "
+   03F8 4E 6F 76 20         282 		.ascii	"Nov "
+   03FC 44 65 63 20         283 		.ascii	"Dec "
+                            284 
+   0400 3F 3F 3F 20         285 daystrs:	.ascii	"??? "
+   0404 53 75 6E 20         286 		.ascii	"Sun "
+   0408 4D 6F 6E 20         287 		.ascii	"Mon "
+   040C 54 75 65 20         288 		.ascii	"Tue "
+   0410 57 65 64 20         289 		.ascii	"Wed "
+   0414 54 68 75 20         290 		.ascii	"Thu "
+   0418 46 72 69 20         291 		.ascii	"Fri "
+   041C 53 61 74 20         292 		.ascii	"Sat "
+                             27 
+   0420 00 00 00 00 00 00    28 datebuf:	.fcb	0,0,0,0,0,0,0
+        00
