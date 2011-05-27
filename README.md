@@ -27,7 +27,7 @@ Schematics and PCB layout file are provided for use with the [open-source gEDA s
 
 Ultim809 currently has no working mass storage, so a PC with a Unix-like operating system (Linux, Mac OS X, etc.) and command-line skills are recommended for working with Ultim809. You'll also want a [5 volt FTDI USB-to-serial cable.](http://www.sparkfun.com/products/9718)
 
-No microcontrollers or programmable logic chips are used, so an expensive programmer is not required. The 8K EEPROM can be programmed with a [simple Arduino circuit.](*****)
+No microcontrollers or programmable logic chips are used, so an expensive programmer is not required. The 8K EEPROM can be programmed with a [simple Arduino circuit.](https://github.com/74hc595/ROMBurner)
 
 The 68B09E is still available from Jameco and other electronics retailers, but you'll probably have to buy the TMS9918A and YM2149 from eBay.
 
