@@ -122,7 +122,7 @@ controlcode:	andb	#31		;mask off top bits
 
 ; Normal (non-shifted) scancodes
 code_table:
-	.fcb	0,     K_F9,  0,     K_F5,  K_F3,  K_F12, K_F2,  K_F12
+	.fcb	0,     K_F9,  0,     K_F5,  K_F3,  K_F1,  K_F2,  K_F12
 	.fcb	0,     K_F10, K_F8,  K_F6,  K_F4,  9,     '`,    0
 	.fcb	0,     0,     0,     0,     0,     'q,    '1,    0
 	.fcb	0,     0,     'z,    's,    'a,    'w,    '2,    0
@@ -141,7 +141,7 @@ code_table:
 
 ; Shifted scancodes
 shift_table:
-	.fcb	0,     K_F9,  0,     K_F5,  K_F3,  K_F12, K_F2,  K_F12
+	.fcb	0,     K_F9,  0,     K_F5,  K_F3,  K_F1,  K_F2,  K_F12
 	.fcb	0,     K_F10, K_F8,  K_F6,  K_F4,  9,     '~,    0
 	.fcb	0,     0,     0,     0,     0,     'Q,    '!,    0
 	.fcb	0,     0,     'Z,    'S,    'A,    'W,    '@,    0
